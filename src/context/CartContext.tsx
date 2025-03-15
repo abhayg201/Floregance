@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Product } from '@/data/products';
 
@@ -16,6 +17,7 @@ type CartAction =
   | { type: 'ADD_ITEM'; payload: Product }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'LOAD_CART'; payload: CartItem[] }
   | { type: 'CLEAR_CART' };
 
 interface CartContextType extends CartState {
@@ -108,6 +110,14 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       };
     }
     
+    case 'LOAD_CART': {
+      return {
+        ...state,
+        items: action.payload,
+        ...calculateCartTotals(action.payload)
+      };
+    }
+    
     case 'CLEAR_CART': {
       return {
         ...initialState
@@ -128,14 +138,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart) as CartItem[];
-        parsedCart.forEach(item => {
-          // Remove quantity property before passing to ADD_ITEM as it expects a Product
-          const { quantity, ...productData } = item;
-          // Add the item to the cart multiple times based on quantity
-          for (let i = 0; i < quantity; i++) {
-            dispatch({ type: 'ADD_ITEM', payload: productData });
-          }
-        });
+        dispatch({ type: 'LOAD_CART', payload: parsedCart });
       } catch (error) {
         console.error('Failed to parse saved cart:', error);
       }
