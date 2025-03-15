@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Product } from '@/data/products';
 
@@ -130,7 +129,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const parsedCart = JSON.parse(savedCart) as CartItem[];
         parsedCart.forEach(item => {
-          dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 0 } });
+          // Remove quantity property before passing to ADD_ITEM as it expects a Product
+          const { quantity, ...productData } = item;
+          // Add the item to the cart multiple times based on quantity
+          for (let i = 0; i < quantity; i++) {
+            dispatch({ type: 'ADD_ITEM', payload: productData });
+          }
         });
       } catch (error) {
         console.error('Failed to parse saved cart:', error);
