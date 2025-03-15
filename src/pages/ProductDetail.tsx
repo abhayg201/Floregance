@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { products } from '@/data/products';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ShoppingBag, Heart, Share, ChevronRight, Minus, Plus, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Heart, Share, ChevronRight, Minus, Plus, ArrowLeft } from 'lucide-react';
 import Newsletter from '@/components/Newsletter';
 
 const ProductDetail = () => {
