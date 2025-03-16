@@ -1,14 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { ShoppingBag, Menu, X, Search } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import ProfileButton from './ProfileButton';
+import SearchDialog from './SearchDialog';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { items } = useCart();
+  const location = useLocation();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +26,11 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const navLinks = [
     { title: 'Home', href: '/' },
@@ -61,8 +70,13 @@ const Navbar = () => {
         </nav>
         
         <div className="flex items-center space-x-4">
-          <button className="text-foreground/70 hover:text-foreground transition-colors" aria-label="Search">
+          <button 
+            className="text-foreground/70 hover:text-foreground transition-colors flex items-center gap-1.5" 
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search"
+          >
             <Search size={20} />
+            <span className="hidden md:inline text-sm">Search</span>
           </button>
           
           <Link 
@@ -107,8 +121,20 @@ const Navbar = () => {
               {link.title}
             </Link>
           ))}
+          <button 
+            className="text-lg font-medium py-2 border-b border-border/50 text-left flex items-center gap-2"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setSearchOpen(true);
+            }}
+          >
+            <Search size={18} />
+            Search
+          </button>
         </nav>
       </div>
+
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   );
 };
