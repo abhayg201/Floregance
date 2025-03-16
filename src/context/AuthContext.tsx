@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   avatar?: string;
+  provider?: string;
 }
 
 interface AuthContextType {
@@ -14,6 +15,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithFacebook: () => Promise<void>;
   logout: () => void;
 }
 
@@ -57,7 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: Math.random().toString(36).substring(2, 9),
         email,
         name: email.split('@')[0],
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        provider: 'email'
       };
 
       setUser(newUser);
@@ -81,13 +85,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: Math.random().toString(36).substring(2, 9),
         email,
         name,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        provider: 'email'
       };
 
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
     } catch (error) {
       console.error('Registration error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock Google authentication
+      const randomEmail = `user${Math.floor(Math.random() * 1000)}@gmail.com`;
+      const randomName = `Google User ${Math.floor(Math.random() * 100)}`;
+      
+      const newUser = {
+        id: Math.random().toString(36).substring(2, 9),
+        email: randomEmail,
+        name: randomName,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomEmail}`,
+        provider: 'google'
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const loginWithFacebook = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock Facebook authentication
+      const randomEmail = `user${Math.floor(Math.random() * 1000)}@facebook.com`;
+      const randomName = `Facebook User ${Math.floor(Math.random() * 100)}`;
+      
+      const newUser = {
+        id: Math.random().toString(36).substring(2, 9),
+        email: randomEmail,
+        name: randomName,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomEmail}`,
+        provider: 'facebook'
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } catch (error) {
+      console.error('Facebook login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -107,6 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         register,
+        loginWithGoogle,
+        loginWithFacebook,
         logout
       }}
     >

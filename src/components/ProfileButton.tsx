@@ -65,6 +65,11 @@ const ProfileButton = () => {
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email}
             </p>
+            {user?.provider && user.provider !== 'email' && (
+              <p className="text-xs leading-none text-muted-foreground mt-1">
+                Via {user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
