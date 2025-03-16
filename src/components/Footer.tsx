@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Twitter, Mail } from 'lucide-react';
@@ -11,7 +10,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="md:col-span-1">
             <Link to="/" className="font-serif text-xl font-medium tracking-tight">
-              Crafted Haven
+              Floregance
             </Link>
             <p className="mt-4 text-sm text-foreground/70 leading-relaxed">
               Celebrating artisanal craftsmanship and preserving traditional techniques through beautiful, handcrafted products.
@@ -28,7 +27,7 @@ const Footer = () => {
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-foreground/60 hover:text-foreground transition-colors">
                 <Twitter size={18} />
               </a>
-              <a href="mailto:hello@craftedhaven.com" aria-label="Email" className="text-foreground/60 hover:text-foreground transition-colors">
+              <a href="mailto:hello@floregance.com" aria-label="Email" className="text-foreground/60 hover:text-foreground transition-colors">
                 <Mail size={18} />
               </a>
             </div>
@@ -69,7 +68,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-12 pt-6 border-t border-craft-200/50 flex flex-col md:flex-row justify-between items-center text-sm text-foreground/60">
-          <p>© {new Date().getFullYear()} Crafted Haven. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Floregance. All rights reserved.</p>
           <p className="mt-2 md:mt-0">Made with care and craftsmanship</p>
         </div>
       </div>

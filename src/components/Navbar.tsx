@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -11,7 +10,6 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { items } = useCart();
   
-  // Track scrolling to change navbar appearance
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -43,15 +41,13 @@ const Navbar = () => {
       )}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        {/* Logo */}
         <Link 
           to="/" 
           className="font-serif text-xl md:text-2xl font-medium tracking-tight"
         >
-          Crafted Haven
+          Floregance
         </Link>
         
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
             <Link
@@ -64,7 +60,6 @@ const Navbar = () => {
           ))}
         </nav>
         
-        {/* Action Icons */}
         <div className="flex items-center space-x-4">
           <button className="text-foreground/70 hover:text-foreground transition-colors" aria-label="Search">
             <Search size={20} />
@@ -83,10 +78,8 @@ const Navbar = () => {
             )}
           </Link>
           
-          {/* Profile Button */}
           <ProfileButton />
           
-          {/* Mobile menu button */}
           <button 
             className="md:hidden text-foreground/70 hover:text-foreground transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -97,7 +90,6 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* Mobile menu */}
       <div 
         className={cn(
           "fixed inset-0 bg-white z-40 transition-transform transform duration-300 ease-out-sine pt-20",
