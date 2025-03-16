@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { ShoppingBag, Menu, X, Search } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import ProfileButton from './ProfileButton';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -81,6 +82,9 @@ const Navbar = () => {
               </span>
             )}
           </Link>
+          
+          {/* Profile Button */}
+          <ProfileButton />
           
           {/* Mobile menu button */}
           <button 
