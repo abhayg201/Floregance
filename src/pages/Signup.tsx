@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { toast } from 'sonner';
+import SocialLoginButtons from '@/components/SocialLoginButtons';
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
@@ -133,6 +134,8 @@ const Signup = () => {
               >
                 {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
+              
+              <SocialLoginButtons />
             </form>
           </Form>
         </div>

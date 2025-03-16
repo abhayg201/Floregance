@@ -3,7 +3,6 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -12,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { toast } from 'sonner';
+import SocialLoginButtons from '@/components/SocialLoginButtons';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -99,6 +99,8 @@ const Login = () => {
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
+
+              <SocialLoginButtons />
 
               <div className="mt-4 text-center text-xs text-muted-foreground">
                 <p>For demo purposes, use any email with password "password"</p>
