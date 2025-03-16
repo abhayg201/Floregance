@@ -15,6 +15,7 @@ const Products = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [sortOption, setSortOption] = useState("featured");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 500 });
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
   
   // Get all unique categories
   const categories = Array.from(new Set(products.map(product => product.category)));
@@ -22,11 +23,28 @@ const Products = () => {
   // Filter products based on search params
   useEffect(() => {
     const categoryParam = searchParams.get('category');
+    const searchParam = searchParams.get('search');
+    
     if (categoryParam) {
       setSelectedCategory(categoryParam);
     }
     
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+    
     let filtered = [...products];
+    
+    // Apply search filter
+    if (searchParam) {
+      const query = searchParam.toLowerCase();
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query) ||
+        product.artisan.toLowerCase().includes(query)
+      );
+    }
     
     // Apply category filter
     if (selectedCategory) {
@@ -67,7 +85,7 @@ const Products = () => {
     }
     
     setFilteredProducts(filtered);
-  }, [searchParams, selectedCategory, sortOption, priceRange]);
+  }, [searchParams, selectedCategory, sortOption, priceRange, searchQuery]);
   
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
@@ -81,6 +99,12 @@ const Products = () => {
     setSearchParams(searchParams);
   };
   
+  const clearSearchQuery = () => {
+    setSearchQuery(null);
+    searchParams.delete('search');
+    setSearchParams(searchParams);
+  };
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -90,12 +114,42 @@ const Products = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col mb-8">
               <h1 className="font-serif text-3xl md:text-4xl font-medium">
-                {selectedCategory ? `${selectedCategory} Collection` : "All Products"}
+                {searchQuery 
+                  ? `Search Results for "${searchQuery}"` 
+                  : selectedCategory 
+                    ? `${selectedCategory} Collection` 
+                    : "All Products"}
               </h1>
               <p className="text-foreground/70 mt-2">
-                Discover our collection of handcrafted treasures from talented artisans around the world.
+                {searchQuery 
+                  ? `Found ${filteredProducts.length} products matching your search.`
+                  : "Discover our collection of handcrafted treasures from talented artisans around the world."}
               </p>
             </div>
+            
+            {/* Active filters display */}
+            {(selectedCategory || searchQuery) && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedCategory && (
+                  <button
+                    onClick={() => handleCategoryChange(null)}
+                    className="flex items-center space-x-1 px-3 py-1.5 bg-primary/10 rounded-md text-sm"
+                  >
+                    <span>Category: {selectedCategory}</span>
+                    <X size={14} />
+                  </button>
+                )}
+                {searchQuery && (
+                  <button
+                    onClick={clearSearchQuery}
+                    className="flex items-center space-x-1 px-3 py-1.5 bg-primary/10 rounded-md text-sm"
+                  >
+                    <span>Search: {searchQuery}</span>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            )}
             
             {/* Mobile filter button */}
             <div className="flex md:hidden justify-between items-center mb-6">
@@ -106,16 +160,6 @@ const Products = () => {
                 <Filter size={16} />
                 <span>Filter & Sort</span>
               </button>
-              
-              {selectedCategory && (
-                <button
-                  onClick={() => handleCategoryChange(null)}
-                  className="flex items-center space-x-1 px-3 py-2 bg-primary/10 rounded-md text-sm"
-                >
-                  <span>{selectedCategory}</span>
-                  <X size={14} />
-                </button>
-              )}
             </div>
             
             <div className="flex flex-col md:flex-row gap-8">
@@ -313,6 +357,7 @@ const Products = () => {
                         handleCategoryChange(null);
                         setPriceRange({ min: 0, max: 500 });
                         setSortOption("featured");
+                        clearSearchQuery();
                       }}
                       className="btn-primary"
                     >
