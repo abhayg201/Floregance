@@ -67,14 +67,17 @@ const ProfileButton = () => {
     );
   }
 
+  // Use avatar or avatar_url, whichever is available
+  const avatarUrl = user?.avatar || user?.avatar_url;
+
   // Authenticated user view (same for mobile and desktop)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            {user?.avatar ? (
-              <AvatarImage src={user.avatar} alt={user.name} />
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt={user.name} />
             ) : (
               <AvatarFallback>
                 {user?.name?.substring(0, 2).toUpperCase() || 'U'}
@@ -90,7 +93,7 @@ const ProfileButton = () => {
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email}
             </p>
-            {user?.provider && user.provider !== 'email' && (
+            {user?.provider && (
               <p className="text-xs leading-none text-muted-foreground mt-1">
                 Via {user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}
               </p>

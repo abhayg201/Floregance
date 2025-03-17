@@ -7,6 +7,8 @@ export interface UserProfile {
   email: string;
   name: string;
   avatar_url?: string;
+  avatar?: string; // Adding this for backward compatibility
+  provider?: string; // Adding provider field
 }
 
 // Sign up a new user
@@ -119,7 +121,14 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
     
     if (error) throw error;
     
-    return data as UserProfile;
+    // Add provider information and make sure avatar is accessible via both avatar and avatar_url
+    const userProfile = {
+      ...data,
+      avatar: data.avatar_url, // For backward compatibility
+      provider: authData.user.app_metadata?.provider || 'email'
+    } as UserProfile;
+    
+    return userProfile;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return null;
