@@ -12,11 +12,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, UserCircle } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ProfileButton = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleLogout = () => {
     logout();
@@ -24,6 +26,28 @@ const ProfileButton = () => {
   };
 
   if (!isAuthenticated) {
+    // Mobile view - compact buttons
+    if (isMobile) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <UserCircle className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate('/login')}>
+              Log in
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/signup')}>
+              Sign up
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+    
+    // Desktop view - regular buttons
     return (
       <div className="flex items-center gap-2">
         <Button 
@@ -43,6 +67,7 @@ const ProfileButton = () => {
     );
   }
 
+  // Authenticated user view (same for mobile and desktop)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
