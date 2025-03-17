@@ -1,23 +1,25 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string;
-  provider?: string;
-}
+import { supabase } from '@/lib/supabase';
+import { 
+  signUp as apiSignUp, 
+  signIn as apiSignIn, 
+  signInWithGoogle as apiSignInWithGoogle,
+  signInWithFacebook as apiSignInWithFacebook,
+  signOut as apiSignOut,
+  getCurrentUserProfile,
+  UserProfile
+} from '@/services/authService';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,43 +33,53 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Listen for auth state changes
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setIsLoading(true);
+        
+        if (session?.user) {
+          const userProfile = await getCurrentUserProfile();
+          setUser(userProfile);
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Initial check for logged in user
+    const checkUser = async () => {
+      try {
+        setIsLoading(true);
+        const userProfile = await getCurrentUserProfile();
+        setUser(userProfile);
+      } catch (error) {
+        console.error('Error checking user:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkUser();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // For a real app, you'd connect to a backend here
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // For demo purposes, accept any email with password "password"
-      if (password !== 'password') {
-        throw new Error('Invalid email or password');
-      }
-
-      // Create a mock user
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        email,
-        name: email.split('@')[0],
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-        provider: 'email'
-      };
-
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      await apiSignIn(email, password);
+      // Auth state listener will handle updating the user state
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -77,22 +89,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Create a mock user
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        email,
-        name,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-        provider: 'email'
-      };
-
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      await apiSignUp(email, password, name);
+      // For new signups, we'll log them in right away
+      await apiSignIn(email, password);
+      // Auth state listener will handle updating the user state
     } catch (error) {
-      console.error('Registration error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -100,64 +101,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async () => {
-    setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock Google authentication
-      const randomEmail = `user${Math.floor(Math.random() * 1000)}@gmail.com`;
-      const randomName = `Google User ${Math.floor(Math.random() * 100)}`;
-      
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        email: randomEmail,
-        name: randomName,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomEmail}`,
-        provider: 'google'
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      await apiSignInWithGoogle();
+      // Auth callback will handle redirects and updating the user state
     } catch (error) {
-      console.error('Google login error:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const loginWithFacebook = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock Facebook authentication
-      const randomEmail = `user${Math.floor(Math.random() * 1000)}@facebook.com`;
-      const randomName = `Facebook User ${Math.floor(Math.random() * 100)}`;
-      
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        email: randomEmail,
-        name: randomName,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomEmail}`,
-        provider: 'facebook'
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-    } catch (error) {
-      console.error('Facebook login error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const loginWithFacebook = async () => {
+    try {
+      await apiSignInWithFacebook();
+      // Auth callback will handle redirects and updating the user state
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await apiSignOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
