@@ -6,6 +6,7 @@ import { ShoppingBag, Menu, X, Search } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import ProfileButton from './ProfileButton';
 import SearchDialog from './SearchDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +14,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const { items } = useCart();
   const location = useLocation();
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -52,12 +54,12 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <Link 
           to="/" 
-          className="font-serif text-xl md:text-2xl font-medium tracking-tight"
+          className="font-serif text-xl md:text-2xl font-medium tracking-tight mr-auto"
         >
           Floregance
         </Link>
         
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-8 mx-auto">
           {navLinks.map((link) => (
             <Link
               key={link.title}
@@ -69,13 +71,13 @@ const Navbar = () => {
           ))}
         </nav>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           <button 
             className="text-foreground/70 hover:text-foreground transition-colors flex items-center gap-1.5" 
             onClick={() => setSearchOpen(true)}
             aria-label="Search"
           >
-            <Search size={20} />
+            <Search size={isMobile ? 18 : 20} />
             <span className="hidden md:inline text-sm">Search</span>
           </button>
           
@@ -84,7 +86,7 @@ const Navbar = () => {
             className="text-foreground/70 hover:text-foreground transition-colors relative"
             aria-label="Shopping cart"
           >
-            <ShoppingBag size={20} />
+            <ShoppingBag size={isMobile ? 18 : 20} />
             {items.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center animate-scale-up">
                 {items.length}
@@ -99,7 +101,7 @@ const Navbar = () => {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
