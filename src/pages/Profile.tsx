@@ -23,6 +23,9 @@ const Profile = () => {
     return null;
   }
 
+  // Use avatar or avatar_url, whichever is available
+  const avatarUrl = user.avatar || user.avatar_url;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -33,8 +36,8 @@ const Profile = () => {
           <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="flex flex-col items-center sm:flex-row sm:items-start mb-8">
               <Avatar className="h-24 w-24 mb-4 sm:mb-0 sm:mr-8">
-                {user.avatar ? (
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} alt={user.name} />
                 ) : (
                   <AvatarFallback className="text-xl">
                     {user.name.substring(0, 2).toUpperCase()}
