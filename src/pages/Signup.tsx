@@ -26,7 +26,7 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Signup = () => {
-  const { register, isLoading } = useAuth();
+  const { register: registerUser, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<SignupFormValues>({
@@ -41,11 +41,13 @@ const Signup = () => {
 
   const onSubmit = async (values: SignupFormValues) => {
     try {
-      await register(values.name, values.email, values.password);
+      console.log('Form submitted with values:', { ...values, password: '[REDACTED]' });
+      await registerUser(values.name, values.email, values.password);
       toast.success('Account created successfully!');
       navigate('/');
-    } catch (error) {
-      toast.error('Failed to create account');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast.error(error.message || 'Failed to create account');
     }
   };
 
