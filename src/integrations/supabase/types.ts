@@ -9,7 +9,114 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          payment_intent_id: string | null
+          shipping_address: Json
+          status: string
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items: Json
+          payment_intent_id?: string | null
+          shipping_address: Json
+          status: string
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          payment_intent_id?: string | null
+          shipping_address?: Json
+          status?: string
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          artisan: string
+          artisan_story: string | null
+          bestseller: boolean
+          care_instructions: string | null
+          category: string
+          created_at: string
+          description: string
+          dimensions: string | null
+          featured: boolean
+          id: string
+          images: string[]
+          in_stock: boolean
+          materials: string[]
+          name: string
+          new: boolean
+          origin: string
+          original_price: number | null
+          price: number
+          specifications: Json | null
+          updated_at: string
+          weight: string | null
+        }
+        Insert: {
+          artisan: string
+          artisan_story?: string | null
+          bestseller?: boolean
+          care_instructions?: string | null
+          category: string
+          created_at?: string
+          description: string
+          dimensions?: string | null
+          featured?: boolean
+          id?: string
+          images: string[]
+          in_stock?: boolean
+          materials: string[]
+          name: string
+          new?: boolean
+          origin: string
+          original_price?: number | null
+          price: number
+          specifications?: Json | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Update: {
+          artisan?: string
+          artisan_story?: string | null
+          bestseller?: boolean
+          care_instructions?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          dimensions?: string | null
+          featured?: boolean
+          id?: string
+          images?: string[]
+          in_stock?: boolean
+          materials?: string[]
+          name?: string
+          new?: boolean
+          origin?: string
+          original_price?: number | null
+          price?: number
+          specifications?: Json | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

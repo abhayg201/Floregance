@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 const Signup = () => {
   const { register: registerUser, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -41,13 +42,26 @@ const Signup = () => {
 
   const onSubmit = async (values: SignupFormValues) => {
     try {
+      setErrorMessage(null);
       console.log('Form submitted with values:', { ...values, password: '[REDACTED]' });
       await registerUser(values.name, values.email, values.password);
       toast.success('Account created successfully!');
       navigate('/');
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error(error.message || 'Failed to create account');
+      
+      // More user-friendly error messages
+      if (error.message?.includes('email_not_confirmed')) {
+        setErrorMessage('This email is already registered but not confirmed. Please check your inbox for a confirmation email or try signing in.');
+      } else if (error.message?.includes('already registered')) {
+        setErrorMessage('This email is already registered. Please use a different email or try signing in.');
+      } else if (error.message?.includes('security purposes') || error.message?.includes('over_email_send_rate_limit')) {
+        setErrorMessage('Too many registration attempts. Please try again after a few minutes.');
+      } else {
+        setErrorMessage(error.message || 'Failed to create account. Please try again.');
+      }
+      
+      toast.error(errorMessage || error.message || 'Failed to create account');
     }
   };
 
@@ -62,6 +76,12 @@ const Signup = () => {
               Enter your details to sign up for an account
             </p>
           </div>
+
+          {errorMessage && (
+            <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
+              {errorMessage}
+            </div>
+          )}
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

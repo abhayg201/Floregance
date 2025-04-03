@@ -15,6 +15,27 @@ export interface UserProfile {
 export const signUp = async (email: string, password: string, name: string) => {
   try {
     console.log('Attempting to sign up user:', email);
+    
+    // First check if user exists but is unconfirmed
+    const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+      filter: {
+        email: email
+      }
+    });
+    
+    // If there's an unconfirmed user with this email, delete it first
+    if (users && users.length > 0 && !users[0].email_confirmed_at) {
+      console.log('Found existing unconfirmed user, deleting first...');
+      try {
+        await supabase.auth.admin.deleteUser(users[0].id);
+        console.log('Deleted unconfirmed user successfully');
+      } catch (deleteError) {
+        console.error('Error deleting unconfirmed user:', deleteError);
+        // Continue with signup anyway
+      }
+    }
+    
+    // Proceed with signup
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -27,6 +48,24 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     if (error) {
       console.error('Signup error:', error);
+      
+      // Special handling for email_not_confirmed error
+      if (error.code === 'email_not_confirmed') {
+        // Try to sign in with credentials when this happens
+        console.log('Email not confirmed, trying to sign in directly...');
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (signInError) {
+          console.error('Sign in attempt after email_not_confirmed error failed:', signInError);
+          throw new Error('This email is already registered but not confirmed. Please check your inbox for a confirmation email or try to sign in instead.');
+        }
+        
+        return signInData;
+      }
+      
       throw error;
     }
 
