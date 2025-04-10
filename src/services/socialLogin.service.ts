@@ -10,6 +10,10 @@ export const signInWithGoogle = async () => {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline', // Get refresh token
+          prompt: 'select_account', // Force account selection
+        },
       },
     });
 
@@ -35,6 +39,10 @@ export const signInWithFacebook = async () => {
       provider: 'facebook',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          display: 'popup', // Force popup display
+          auth_type: 'reauthenticate', // Force login screen
+        },
       },
     });
 

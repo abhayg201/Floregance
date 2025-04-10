@@ -64,6 +64,12 @@ class ProfileService {
             return null;
           }
           
+          // Update last login time for the new profile
+          await supabase
+            .from('profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', authData.user.id);
+          
           // Add provider information
           return {
             ...newProfile,

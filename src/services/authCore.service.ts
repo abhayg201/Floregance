@@ -72,6 +72,19 @@ export const signIn = async (email: string, password: string) => {
       throw error;
     }
 
+    // Update last login time in profile
+    if (data?.user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', data.user.id);
+      } catch (profileError) {
+        console.error('Error updating last login time:', profileError);
+        // Don't throw this error since login was successful
+      }
+    }
+
     console.log('Sign in successful, data:', data);
     return data;
   } catch (error: any) {
