@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
@@ -46,7 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Listen for auth state changes
   useEffect(() => {
     console.log('Setting up auth state change listener');
     
@@ -74,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Initial check for logged in user
     const checkUser = async () => {
       try {
         console.log('Initial check for logged in user');
@@ -119,7 +116,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       await apiSignIn(email, password);
-      // Auth state listener will handle updating the user state
       console.log('Login successful');
     } catch (error) {
       console.error('Login error:', error);
@@ -135,9 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiSignUp(email, password, name);
       console.log('Registration successful, logging in');
-      // For new signups, we'll log them in right away
       await apiSignIn(email, password);
-      // Auth state listener will handle updating the user state
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -150,7 +144,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('Google login attempt');
     try {
       await apiSignInWithGoogle();
-      // Auth callback will handle redirects and updating the user state
       console.log('Google login redirect initiated');
     } catch (error) {
       console.error('Google login error:', error);
@@ -162,7 +155,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('Facebook login attempt');
     try {
       await apiSignInWithFacebook();
-      // Auth callback will handle redirects and updating the user state
       console.log('Facebook login redirect initiated');
     } catch (error) {
       console.error('Facebook login error:', error);
@@ -189,7 +181,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response = await apiVerifyPhoneOTP(phoneNumber, otp);
-      // If verification is successful, the session will be updated automatically
       return response;
     } catch (error: any) {
       console.error('Phone verification error:', error);
@@ -218,7 +209,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response = await apiVerifyEmailOTP(email, otp);
-      // If verification is successful, the session will be updated automatically
       return response;
     } catch (error: any) {
       console.error('Email verification error:', error);

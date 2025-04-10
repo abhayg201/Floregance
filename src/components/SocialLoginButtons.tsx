@@ -2,30 +2,30 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const SocialLoginButtons = () => {
   const { loginWithGoogle, loginWithFacebook } = useAuth();
-  const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
     try {
+      console.log('Initiating Google login');
       await loginWithGoogle();
-      toast.success('Successfully logged in with Google!');
-      navigate('/');
-    } catch (error) {
-      toast.error('Failed to login with Google');
+      // No need for toast success here as the page will redirect
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      toast.error(error.message || 'Failed to login with Google');
     }
   };
 
   const handleFacebookLogin = async () => {
     try {
+      console.log('Initiating Facebook login');
       await loginWithFacebook();
-      toast.success('Successfully logged in with Facebook!');
-      navigate('/');
-    } catch (error) {
-      toast.error('Failed to login with Facebook');
+      // No need for toast success here as the page will redirect
+    } catch (error: any) {
+      console.error('Facebook login error:', error);
+      toast.error(error.message || 'Failed to login with Facebook');
     }
   };
 

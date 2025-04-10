@@ -30,14 +30,18 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
 
     setIsLoading(true);
     try {
+      console.log('Sending code to phone number:', phoneNumber);
       const response = await loginWithPhone(phoneNumber);
+      console.log('Phone login response:', response);
+      
       if (response.success) {
         toast.success(response.message);
         setCodeSent(true);
       } else {
-        toast.error(response.message);
+        toast.error(response.message || 'Failed to send verification code');
       }
     } catch (error) {
+      console.error('Phone login error:', error);
       toast.error('Failed to send verification code');
     } finally {
       setIsLoading(false);
@@ -52,14 +56,18 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
 
     setIsLoading(true);
     try {
+      console.log('Verifying code for phone number:', phoneNumber);
       const response = await verifyPhone(phoneNumber, verificationCode);
+      console.log('Phone verification response:', response);
+      
       if (response.success) {
         toast.success('Phone verified successfully!');
         if (onVerified) onVerified();
       } else {
-        toast.error(response.message);
+        toast.error(response.message || 'Failed to verify code');
       }
     } catch (error) {
+      console.error('Phone verification error:', error);
       toast.error('Failed to verify phone number');
     } finally {
       setIsLoading(false);
