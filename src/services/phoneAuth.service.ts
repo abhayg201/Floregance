@@ -22,17 +22,21 @@ class PhoneAuthService {
         phone: phoneNumber
       });
       
+      console.log('OTP response:', data, error);
+      
       if (error) {
         console.error('Error sending OTP:', error);
         return { success: false, message: error.message };
       }
       
       // Store the phone number in the phone_auth table
-      const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
       if (userId) {
         // Update or insert phone number in the phone_auth table
         await supabase.from('phone_auth').upsert({
-          user_id: await userId,
+          user_id: userId,
           phone_number: phoneNumber,
           last_otp_sent_at: new Date().toISOString(),
           verification_attempts: 0
@@ -68,11 +72,15 @@ class PhoneAuthService {
         type: 'sms'
       });
       
+      console.log('Verify OTP response:', data, error);
+      
       if (error) {
         console.error('Error verifying OTP:', error);
         
         // Update verification attempts
-        const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData?.user?.id;
+        
         if (userId) {
           const { data: phoneAuth } = await supabase
             .from('phone_auth')
