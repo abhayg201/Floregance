@@ -8,7 +8,13 @@ import {
   signInWithFacebook as apiSignInWithFacebook,
   signOut as apiSignOut,
   getCurrentUserProfile,
-  UserProfile
+  sendPhoneOTP as apiSendPhoneOTP,
+  verifyPhoneOTP as apiVerifyPhoneOTP,
+  sendEmailVerification as apiSendEmailVerification,
+  verifyEmailOTP as apiVerifyEmailOTP,
+  UserProfile,
+  PhoneAuthResponse,
+  EmailVerificationResponse
 } from '@/services/authService';
 
 interface AuthContextType {
@@ -19,6 +25,10 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
+  loginWithPhone: (phoneNumber: string) => Promise<PhoneAuthResponse>;
+  verifyPhone: (phoneNumber: string, otp: string) => Promise<PhoneAuthResponse>;
+  sendEmailVerificationCode: (email: string) => Promise<EmailVerificationResponse>;
+  verifyEmail: (email: string, otp: string) => Promise<EmailVerificationResponse>;
   logout: () => Promise<void>;
 }
 
@@ -159,6 +169,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
+  
+  const loginWithPhone = async (phoneNumber: string): Promise<PhoneAuthResponse> => {
+    console.log('Phone login attempt:', phoneNumber);
+    setIsLoading(true);
+    try {
+      const response = await apiSendPhoneOTP(phoneNumber);
+      return response;
+    } catch (error: any) {
+      console.error('Phone login error:', error);
+      return { success: false, message: error.message || 'Error sending OTP' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const verifyPhone = async (phoneNumber: string, otp: string): Promise<PhoneAuthResponse> => {
+    console.log('Phone verification attempt:', phoneNumber);
+    setIsLoading(true);
+    try {
+      const response = await apiVerifyPhoneOTP(phoneNumber, otp);
+      // If verification is successful, the session will be updated automatically
+      return response;
+    } catch (error: any) {
+      console.error('Phone verification error:', error);
+      return { success: false, message: error.message || 'Error verifying OTP' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const sendEmailVerificationCode = async (email: string): Promise<EmailVerificationResponse> => {
+    console.log('Email verification code request for:', email);
+    setIsLoading(true);
+    try {
+      const response = await apiSendEmailVerification(email);
+      return response;
+    } catch (error: any) {
+      console.error('Email verification code error:', error);
+      return { success: false, message: error.message || 'Error sending verification code' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const verifyEmail = async (email: string, otp: string): Promise<EmailVerificationResponse> => {
+    console.log('Email verification attempt for:', email);
+    setIsLoading(true);
+    try {
+      const response = await apiVerifyEmailOTP(email, otp);
+      // If verification is successful, the session will be updated automatically
+      return response;
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      return { success: false, message: error.message || 'Error verifying email' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const logout = async () => {
     console.log('Logout attempt');
@@ -185,6 +253,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         loginWithGoogle,
         loginWithFacebook,
+        loginWithPhone,
+        verifyPhone,
+        sendEmailVerificationCode,
+        verifyEmail,
         logout
       }}
     >
