@@ -56,7 +56,7 @@ const Footer = () => {
             </ul>
           </div>
           
-          <div>
+          {/* <div>
             <h4 className="font-medium text-base mb-4">Customer Service</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/shipping" className="text-foreground/70 hover:text-foreground transition-colors">Shipping & Returns</Link></li>
@@ -64,7 +64,7 @@ const Footer = () => {
               <li><Link to="/privacy" className="text-foreground/70 hover:text-foreground transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="text-foreground/70 hover:text-foreground transition-colors">Terms & Conditions</Link></li>
             </ul>
-          </div>
+          </div> */}
         </div>
         
         <div className="mt-12 pt-6 border-t border-craft-200/50 flex flex-col md:flex-row justify-between items-center text-sm text-foreground/60">
