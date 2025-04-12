@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,12 +8,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Mail, MapPin, Phone } from 'lucide-react';
 
+// Update the DESIGNATED_EMAIL constant
+const DESIGNATED_EMAIL = 'yogodara@gmail.com';
+
+interface ContactFormData {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
+
 const About = () => {
   const location = useLocation();
   const artisansRef = useRef<HTMLDivElement>(null);
   const processRef = useRef<HTMLDivElement>(null);
   const sustainabilityRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Handle hash navigation
@@ -39,9 +50,37 @@ const About = () => {
     }
   }, [location]);
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success("Thank you for your message! We'll get back to you soon.");
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const data: ContactFormData = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+    };
+
+    try {
+      // Send email using the browser's mailto link
+      const mailtoLink = `mailto:${DESIGNATED_EMAIL}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(
+        `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone}\n\nMessage:\n${data.message}`
+      )}`;
+      
+      window.location.href = mailtoLink;
+      
+      // Clear the form
+      e.currentTarget.reset();
+      
+      toast.success("Thank you for your message! We'll get back to you soon.");
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error("Failed to send message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -276,30 +315,53 @@ const About = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="name" className="text-sm font-medium">Name</label>
-                      <Input id="name" placeholder="Your name" required />
+                      <Input 
+                        id="name" 
+                        name="name"
+                        placeholder="Your name" 
+                        required 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium">Email</label>
-                      <Input id="email" type="email" placeholder="Your email" required />
+                      <label htmlFor="phone" className="text-sm font-medium">Phone Number</label>
+                        <Input 
+                          id="phone" 
+                          name="phone"
+                          type="tel" 
+                          placeholder="Your phone number" 
+                          required 
+                        />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                    <Input id="subject" placeholder="What's this about?" required />
+                    <Input 
+                      id="subject" 
+                      name="subject"
+                      placeholder="What's this about?" 
+                      required 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <label htmlFor="message" className="text-sm font-medium">Message</label>
                     <Textarea 
                       id="message" 
+                      name="message"
                       placeholder="Tell us how we can help..." 
                       rows={5}
                       required
                     />
                   </div>
                   
-                  <Button type="submit" className="w-full">Send Message</Button>
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                  </Button>
                 </form>
               </div>
               
@@ -319,7 +381,7 @@ const About = () => {
                         </p>
                       </div>
                     </div>
-                    
+                                        
                     <div className="flex items-start">
                       <Mail className="mr-3 h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <div>
@@ -330,13 +392,14 @@ const About = () => {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start">
                       <Phone className="mr-3 h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium">Call Us</h4>
                         <p className="text-foreground/80">
                           +1 (555) 123-4567<br />
+                          +1 (555) 123-4568<br />
                           Monday-Friday: 9am-5pm PST
                         </p>
                       </div>

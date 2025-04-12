@@ -20,10 +20,11 @@ interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isSocialLoginLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  loginWithFacebook: () => Promise<void>;
+  loginWithGoogle: () => Promise<{ provider: string; url: string | null }>;
+  loginWithFacebook: () => Promise<{ provider: string; url: string | null }>;
   loginWithPhone: (phoneNumber: string) => Promise<PhoneAuthResponse>;
   verifyPhone: (phoneNumber: string, otp: string) => Promise<PhoneAuthResponse>;
   sendEmailVerificationCode: (email: string) => Promise<EmailVerificationResponse>;
@@ -44,6 +45,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSocialLoginLoading, setIsSocialLoginLoading] = useState(false);
 
   useEffect(() => {
     console.log('Setting up auth state change listener');
@@ -142,22 +144,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     console.log('Google login attempt');
+    setIsSocialLoginLoading(true);
     try {
-      await apiSignInWithGoogle();
+      const response = await apiSignInWithGoogle();
       console.log('Google login redirect initiated');
+      return response;
     } catch (error) {
       console.error('Google login error:', error);
+      setIsSocialLoginLoading(false);
       throw error;
     }
   };
 
   const loginWithFacebook = async () => {
     console.log('Facebook login attempt');
+    setIsSocialLoginLoading(true);
     try {
-      await apiSignInWithFacebook();
+      const response = await apiSignInWithFacebook();
       console.log('Facebook login redirect initiated');
+      return response;
     } catch (error) {
       console.error('Facebook login error:', error);
+      setIsSocialLoginLoading(false);
       throw error;
     }
   };
@@ -239,6 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user,
         isLoading,
+        isSocialLoginLoading,
         login,
         register,
         loginWithGoogle,
