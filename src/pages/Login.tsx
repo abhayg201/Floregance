@@ -15,6 +15,7 @@ import SocialLoginButtons from '@/components/SocialLoginButtons';
 import EmailVerification from '@/components/EmailVerification';
 import PhoneVerification from '@/components/PhoneVerification';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SEO from '@/components/SEO';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -63,6 +64,13 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO 
+        title="Login to Floregance | Artisanal Handicraft Marketplace"
+        description="Sign in to your Floregance account to access your orders, saved items and profile information."
+        canonicalUrl="/login"
+        type="website"
+      />
+      
       <Navbar />
       <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
