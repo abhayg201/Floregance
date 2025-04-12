@@ -9,6 +9,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ShoppingBag, Heart, Share, ChevronRight, Minus, Plus, ArrowLeft, ArrowRight } from 'lucide-react';
 import Newsletter from '@/components/Newsletter';
+import SEO from '@/components/SEO';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +33,25 @@ const ProductDetail = () => {
   if (!product) {
     return null;
   }
+
+  // Product schema for SEO
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.images[0],
+    "description": product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "Floregance"
+    },
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "price": product.price,
+      "availability": "https://schema.org/InStock"
+    }
+  };
   
   const handleAddToCart = () => {
     // Add the product to cart multiple times based on quantity
@@ -63,6 +83,14 @@ const ProductDetail = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO 
+        title={`${product.name} | Floregance`}
+        description={product.description.substring(0, 160)}
+        image={product.images[0]}
+        canonicalUrl={`/products/${product.id}`}
+        type="product"
+        schema={productSchema}
+      />
       <Navbar />
       
       <main className="flex-grow pt-24 pb-16">
