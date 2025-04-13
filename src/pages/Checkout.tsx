@@ -1,16 +1,37 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { ArrowLeft, CreditCard, Check } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useToast } from '@/components/ui/use-toast';
+import { createOrder } from '@/services/orderService';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+const loadRazorpayScript = () => {
+  return new Promise<boolean>((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const Checkout = () => {
   const { items, subtotal, shipping, total, clearCart } = useCart();
+  const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const location = useLocation();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -20,23 +41,94 @@ const Checkout = () => {
     city: '',
     state: '',
     postalCode: '',
-    country: 'United States',
+    country: 'India',
     phone: '',
-    cardNumber: '',
-    cardName: '',
-    expiration: '',
-    cvv: ''
   });
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [processingOrder, setProcessingOrder] = useState(false);
   
   // Redirect to home if cart is empty
-  React.useEffect(() => {
+  useEffect(() => {
     if (items.length === 0) {
       navigate('/');
     }
   }, [items, navigate]);
+
+  // Load Razorpay script when component mounts
+  useEffect(() => {
+    loadRazorpayScript();
+  }, []);
+
+  // Check for payment verification from URL parameters after Razorpay redirect
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const razorpayPaymentId = searchParams.get('razorpay_payment_id');
+    const razorpayOrderId = searchParams.get('razorpay_order_id');
+    const razorpaySignature = searchParams.get('razorpay_signature');
+    
+    if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
+      // Verify the payment
+      verifyPayment(razorpayPaymentId, razorpayOrderId, razorpaySignature);
+    }
+  }, [location]);
+
+  const verifyPayment = async (paymentId: string, orderId: string, signature: string) => {
+    try {
+      setProcessingOrder(true);
+      
+      const { data, error } = await supabase.functions.invoke('razorpay', {
+        body: {
+          razorpay_payment_id: paymentId,
+          razorpay_order_id: orderId,
+          razorpay_signature: signature
+        },
+        method: 'POST',
+        path: 'verify-payment',
+      });
+
+      if (error) {
+        console.error('Payment verification error:', error);
+        toast({
+          title: "Payment Verification Failed",
+          description: "There was a problem verifying your payment. Please contact support.",
+          duration: 5000,
+        });
+        return;
+      }
+
+      if (data.verified) {
+        clearCart();
+        navigate('/order-confirmation', { 
+          state: { 
+            orderId: data.orderId,
+            email: formData.email
+          } 
+        });
+        
+        toast({
+          title: "Payment Successful!",
+          description: "Thank you for your purchase.",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "Payment Verification Failed",
+          description: "There was a problem verifying your payment. Please contact support.",
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Error during payment verification:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+        duration: 5000,
+      });
+    } finally {
+      setProcessingOrder(false);
+    }
+  };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -63,10 +155,7 @@ const Checkout = () => {
     if (!formData.city) errors.city = 'City is required';
     if (!formData.state) errors.state = 'State is required';
     if (!formData.postalCode) errors.postalCode = 'Postal code is required';
-    if (!formData.cardNumber) errors.cardNumber = 'Card number is required';
-    if (!formData.cardName) errors.cardName = 'Name on card is required';
-    if (!formData.expiration) errors.expiration = 'Expiration date is required';
-    if (!formData.cvv) errors.cvv = 'CVV is required';
+    if (!formData.phone) errors.phone = 'Phone number is required';
     
     // Email validation
     if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
@@ -89,26 +178,106 @@ const Checkout = () => {
       return;
     }
     
+    if (!session?.user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login before placing an order.",
+        duration: 3000,
+      });
+      navigate('/login', { state: { from: '/checkout' } });
+      return;
+    }
+    
     setProcessingOrder(true);
     
-    // Simulate order processing
-    setTimeout(() => {
-      clearCart();
-      navigate('/order-confirmation', { 
-        state: { 
-          orderId: Math.floor(1000000 + Math.random() * 9000000).toString(),
-          email: formData.email
-        } 
-      });
+    try {
+      // Create order in database
+      const orderData = {
+        user_id: session.user.id,
+        items: items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name
+        })),
+        total,
+        status: 'pending',
+        shipping_address: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          street: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.postalCode,
+          country: formData.country,
+          phone: formData.phone
+        }
+      };
       
+      const orderId = await createOrder(orderData);
+      
+      if (!orderId) {
+        throw new Error('Failed to create order');
+      }
+
+      // Create Razorpay order
+      const { data, error } = await supabase.functions.invoke('razorpay', {
+        body: {
+          amount: total,
+          orderId,
+          user_id: session.user.id
+        },
+        method: 'POST',
+        path: 'create-order',
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (window.Razorpay) {
+        // Initialize Razorpay payment
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Craft Bazaar",
+          description: "Order Payment",
+          order_id: data.id,
+          prefill: {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            contact: formData.phone
+          },
+          notes: {
+            order_id: orderId
+          },
+          theme: {
+            color: "#693423"
+          },
+          handler: function() {
+            // This handler will not be called on browser redirect
+            // For browser redirect, use the verify payment code in useEffect
+          },
+          modal: {
+            ondismiss: function() {
+              setProcessingOrder(false);
+            }
+          }
+        };
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      } else {
+        throw new Error('Razorpay SDK failed to load');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
       toast({
-        title: "Order placed successfully!",
-        description: "Thank you for your purchase.",
+        title: "Payment Error",
+        description: "There was a problem processing your payment. Please try again.",
         duration: 5000,
       });
-      
       setProcessingOrder(false);
-    }, 2000);
+    }
   };
   
   return (
@@ -142,6 +311,23 @@ const Checkout = () => {
                           />
                           {formErrors.email && (
                             <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label htmlFor="phone" className="block text-sm font-medium mb-1">Phone Number</label>
+                          <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary ${
+                              formErrors.phone ? 'border-red-500' : 'border-border'
+                            }`}
+                            placeholder="e.g., +91XXXXXXXXXX"
+                          />
+                          {formErrors.phone && (
+                            <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
                           )}
                         </div>
                       </div>
@@ -256,105 +442,36 @@ const Checkout = () => {
                             onChange={handleChange}
                             className="w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                           >
+                            <option value="India">India</option>
                             <option value="United States">United States</option>
                             <option value="Canada">Canada</option>
                             <option value="United Kingdom">United Kingdom</option>
                             <option value="Australia">Australia</option>
                           </select>
                         </div>
-                        <div>
-                          <label htmlFor="phone" className="block text-sm font-medium mb-1">Phone (optional)</label>
-                          <input
-                            type="tel"
-                            id="phone"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                          />
-                        </div>
                       </div>
                     </section>
                     
-                    {/* Payment Information */}
+                    {/* Payment Information Section - Replaced with Razorpay */}
                     <section>
                       <h2 className="font-serif text-xl font-medium mb-4">Payment Information</h2>
                       <div className="border border-border rounded-md p-6">
                         <div className="flex items-center mb-6">
                           <CreditCard size={20} className="text-primary mr-2" />
-                          <span className="font-medium">Credit Card</span>
+                          <span className="font-medium">Secure Payment with Razorpay</span>
                         </div>
                         
-                        <div className="space-y-4">
-                          <div>
-                            <label htmlFor="cardNumber" className="block text-sm font-medium mb-1">Card Number</label>
-                            <input
-                              type="text"
-                              id="cardNumber"
-                              name="cardNumber"
-                              placeholder="1234 5678 9012 3456"
-                              value={formData.cardNumber}
-                              onChange={handleChange}
-                              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary ${
-                                formErrors.cardNumber ? 'border-red-500' : 'border-border'
-                              }`}
-                            />
-                            {formErrors.cardNumber && (
-                              <p className="text-red-500 text-sm mt-1">{formErrors.cardNumber}</p>
-                            )}
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="cardName" className="block text-sm font-medium mb-1">Name on Card</label>
-                            <input
-                              type="text"
-                              id="cardName"
-                              name="cardName"
-                              value={formData.cardName}
-                              onChange={handleChange}
-                              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary ${
-                                formErrors.cardName ? 'border-red-500' : 'border-border'
-                              }`}
-                            />
-                            {formErrors.cardName && (
-                              <p className="text-red-500 text-sm mt-1">{formErrors.cardName}</p>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label htmlFor="expiration" className="block text-sm font-medium mb-1">Expiration (MM/YY)</label>
-                              <input
-                                type="text"
-                                id="expiration"
-                                name="expiration"
-                                placeholder="MM/YY"
-                                value={formData.expiration}
-                                onChange={handleChange}
-                                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary ${
-                                  formErrors.expiration ? 'border-red-500' : 'border-border'
-                                }`}
-                              />
-                              {formErrors.expiration && (
-                                <p className="text-red-500 text-sm mt-1">{formErrors.expiration}</p>
-                              )}
+                        <p className="text-sm text-foreground/70 mb-4">
+                          After you proceed, you'll be redirected to Razorpay's secure payment gateway to complete your payment.
+                        </p>
+                        
+                        <div className="bg-primary/10 p-4 rounded-md">
+                          <div className="flex items-start">
+                            <div className="mr-3">
+                              <Check size={18} className="text-primary mt-0.5" />
                             </div>
                             <div>
-                              <label htmlFor="cvv" className="block text-sm font-medium mb-1">CVV</label>
-                              <input
-                                type="text"
-                                id="cvv"
-                                name="cvv"
-                                placeholder="123"
-                                value={formData.cvv}
-                                onChange={handleChange}
-                                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary ${
-                                  formErrors.cvv ? 'border-red-500' : 'border-border'
-                                }`}
-                              />
-                              {formErrors.cvv && (
-                                <p className="text-red-500 text-sm mt-1">{formErrors.cvv}</p>
-                              )}
+                              <p className="text-sm">All payment information is securely handled by Razorpay. We never store your card details.</p>
                             </div>
                           </div>
                         </div>
@@ -384,7 +501,7 @@ const Checkout = () => {
                             Processing...
                           </span>
                         ) : (
-                          <span>Complete Order</span>
+                          <span>Proceed to Payment</span>
                         )}
                       </button>
                     </div>
@@ -446,7 +563,7 @@ const Checkout = () => {
                         <div>
                           <p className="font-medium text-sm">Secure Checkout</p>
                           <p className="text-xs text-foreground/70 mt-1">
-                            Your payment information is processed securely.
+                            Your payment information is processed securely by Razorpay.
                           </p>
                         </div>
                       </div>
