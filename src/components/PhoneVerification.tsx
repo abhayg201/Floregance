@@ -21,9 +21,12 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
   const [isLoading, setIsLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
+  const [error, setError] = useState('');
 
   const handleSendCode = async () => {
+    setError('');
     if (!phoneNumber || !phoneNumber.match(/^\+[1-9]\d{1,14}$/)) {
+      setError('Please enter a valid phone number with country code (e.g., +1234567890)');
       toast.error('Please enter a valid phone number with country code (e.g., +1234567890)');
       return;
     }
@@ -38,10 +41,12 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
         toast.success(response.message);
         setCodeSent(true);
       } else {
+        setError(response.message || 'Failed to send verification code');
         toast.error(response.message || 'Failed to send verification code');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Phone login error:', error);
+      setError(error.message || 'Failed to send verification code');
       toast.error('Failed to send verification code');
     } finally {
       setIsLoading(false);
@@ -49,7 +54,9 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
   };
 
   const handleVerifyCode = async () => {
+    setError('');
     if (!verificationCode || verificationCode.length < 6) {
+      setError('Please enter a valid verification code');
       toast.error('Please enter a valid verification code');
       return;
     }
@@ -64,10 +71,12 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
         toast.success('Phone verified successfully!');
         if (onVerified) onVerified();
       } else {
+        setError(response.message || 'Failed to verify code');
         toast.error(response.message || 'Failed to verify code');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Phone verification error:', error);
+      setError(error.message || 'Failed to verify phone number');
       toast.error('Failed to verify phone number');
     } finally {
       setIsLoading(false);
@@ -90,6 +99,10 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
         />
+
+        {error && (
+          <p className="text-sm text-red-500">{error}</p>
+        )}
 
         <Button
           className="w-full"
@@ -136,6 +149,10 @@ const PhoneVerification = ({ onVerified, onCancel }: PhoneVerificationProps) => 
           )}
         />
       </div>
+
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
+      )}
 
       <Button
         className="w-full"
