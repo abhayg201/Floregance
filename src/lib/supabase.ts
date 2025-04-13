@@ -11,6 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true
   },
 });
 
@@ -24,4 +25,5 @@ console.log('Supabase client initialized with URL:', supabaseUrl);
  * 2. Make sure the Site URL is set to your application URL
  * 3. Add your website URL and localhost to the Redirect URLs list
  * 4. For development, ensure localhost:5173 or whatever port you're using is listed
+ * 5. For SMS authentication, ensure you've configured Twilio in the Phone Auth provider settings
  */
