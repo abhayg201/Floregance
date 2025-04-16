@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -28,7 +27,7 @@ const loadRazorpayScript = () => {
 
 const Checkout = () => {
   const { items, subtotal, shipping, total, clearCart } = useCart();
-  const { session } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation();
@@ -84,7 +83,6 @@ const Checkout = () => {
           razorpay_signature: signature
         },
         method: 'POST',
-        path: 'verify-payment',
       });
 
       if (error) {
@@ -178,7 +176,7 @@ const Checkout = () => {
       return;
     }
     
-    if (!session?.user) {
+    if (!isAuthenticated || !user) {
       toast({
         title: "Authentication required",
         description: "Please login before placing an order.",
@@ -193,7 +191,7 @@ const Checkout = () => {
     try {
       // Create order in database
       const orderData = {
-        user_id: session.user.id,
+        user_id: user.id,
         items: items.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
@@ -201,7 +199,7 @@ const Checkout = () => {
           name: item.name
         })),
         total,
-        status: 'pending',
+        status: 'pending' as const,
         shipping_address: {
           name: `${formData.firstName} ${formData.lastName}`,
           street: formData.address,
@@ -224,10 +222,9 @@ const Checkout = () => {
         body: {
           amount: total,
           orderId,
-          user_id: session.user.id
+          user_id: user.id
         },
         method: 'POST',
-        path: 'create-order',
       });
 
       if (error) {
