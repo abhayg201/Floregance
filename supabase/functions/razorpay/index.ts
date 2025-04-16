@@ -121,11 +121,16 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
-
+    const pathParts = url.pathname.split('/');
+    const functionName = pathParts[pathParts.length - 1];
+    
+    console.log(`Received request for function: ${functionName}`, url.pathname);
+    
     // Create order endpoint
-    if (path === 'create-order') {
+    if (functionName === 'razorpay') {
       const { amount, orderId, user_id } = await req.json();
+      
+      console.log(`Creating order with amount: ${amount}, orderId: ${orderId}, user_id: ${user_id}`);
       
       if (!amount || !orderId || !user_id) {
         return new Response(
@@ -143,6 +148,7 @@ serve(async (req) => {
         .single();
 
       if (orderError || !orderData) {
+        console.error('Order not found or not authorized:', orderError);
         return new Response(
           JSON.stringify({ error: 'Order not found or not authorized' }),
           { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
@@ -187,8 +193,10 @@ serve(async (req) => {
     }
     
     // Payment verification endpoint
-    else if (path === 'verify-payment') {
+    else if (functionName === 'verify-payment') {
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
+
+      console.log(`Verifying payment: orderId=${razorpay_order_id}, paymentId=${razorpay_payment_id}`);
 
       if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
         return new Response(
@@ -243,91 +251,7 @@ serve(async (req) => {
       );
     }
     
-    // Webhook endpoint for Razorpay events
-    else if (path === 'webhook') {
-      const signature = req.headers.get('x-razorpay-signature');
-      if (!signature) {
-        return new Response(JSON.stringify({ error: 'Webhook signature missing' }), 
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-      }
-
-      // Get the raw request body as a string
-      const rawBody = await req.text();
-      
-      // Verify webhook signature
-      const isValidWebhook = verifyWebhookSignature(rawBody, signature);
-      if (!isValidWebhook) {
-        return new Response(JSON.stringify({ error: 'Invalid webhook signature' }), 
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-      }
-
-      // Parse the body
-      const event = JSON.parse(rawBody);
-      console.log('Received webhook event:', event);
-
-      const { payload } = event;
-      if (event.event === 'payment.captured' || event.event === 'payment.authorized') {
-        const { payment } = payload;
-        const { entity: paymentEntity } = payment;
-        const razorpayOrderId = paymentEntity.order_id;
-        const razorpayPaymentId = paymentEntity.id;
-        
-        // Get payment record and order ID
-        const { data, error } = await supabase
-          .from('razorpay_payments')
-          .select('order_id')
-          .eq('razorpay_order_id', razorpayOrderId)
-          .single();
-
-        if (!error && data) {
-          // Update payment record
-          await updatePaymentRecord(
-            razorpayOrderId,
-            razorpayPaymentId,
-            '', // No signature in webhook
-            event.event === 'payment.captured' ? 'captured' : 'authorized',
-            paymentEntity
-          );
-
-          // Update order status
-          await updateOrderStatus(
-            data.order_id,
-            event.event === 'payment.captured' ? 'processing' : 'pending'
-          );
-        }
-      } else if (event.event === 'payment.failed') {
-        const { payment } = payload;
-        const { entity: paymentEntity } = payment;
-        const razorpayOrderId = paymentEntity.order_id;
-        
-        // Get payment record and order ID
-        const { data, error } = await supabase
-          .from('razorpay_payments')
-          .select('order_id')
-          .eq('razorpay_order_id', razorpayOrderId)
-          .single();
-
-        if (!error && data) {
-          // Update payment record
-          await updatePaymentRecord(
-            razorpayOrderId,
-            paymentEntity.id,
-            '',
-            'failed',
-            paymentEntity
-          );
-
-          // Update order status
-          await updateOrderStatus(data.order_id, 'cancelled');
-        }
-      }
-
-      return new Response(
-        JSON.stringify({ received: true }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-    
+    // Default response for unhandled paths
     return new Response(
       JSON.stringify({ error: 'Invalid endpoint' }),
       { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
