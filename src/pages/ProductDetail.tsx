@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -156,10 +155,12 @@ const ProductDetail = () => {
                   <p className="text-foreground/70 mb-3">By {product.artisan} from {product.origin}</p>
                   
                   <div className="flex items-baseline mb-6">
-                    <span className="text-2xl font-medium">${product.price.toFixed(2)}</span>
+                    <span className="text-2xl font-medium">
+                      ₹{product.price.toLocaleString()} {/* Updated to INR symbol */}
+                    </span>
                     {product.originalPrice && (
                       <span className="ml-3 text-foreground/60 line-through">
-                        ${product.originalPrice.toFixed(2)}
+                        ₹{product.originalPrice.toLocaleString()} {/* Updated to INR symbol */}
                       </span>
                     )}
                   </div>
