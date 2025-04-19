@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { ShoppingBag, Heart, Share, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useCart } from '@/context/CartContext';
-import { Product } from '@/data/products';
+import { Product } from '@/types/product';
 
 interface ProductInfoProps {
   product: Product;

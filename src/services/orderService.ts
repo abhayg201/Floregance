@@ -1,6 +1,5 @@
-
 import { supabase } from '@/lib/supabase';
-import type { Product } from '@/data/products';
+import type { Product } from '@/types/product';
 
 interface OrderItem {
   product_id: string;
