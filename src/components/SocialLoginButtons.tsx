@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { LoaderCircle } from 'lucide-react';
 
 const SocialLoginButtons = () => {
-  const { loginWithGoogle, loginWithFacebook, isSocialLoginLoading } = useAuth();
+  const { loginWithGoogle, loginWithFacebook, isSocialLoginLoading, setIsSocialLoginLoading } = useAuth();
 
   const handleGoogleLogin = async () => {
     try {
@@ -17,10 +17,12 @@ const SocialLoginButtons = () => {
       } else {
         toast.error('Failed to initiate Google login');
       }
+
     } catch (error: any) {
       console.error('Google login error:', error);
       toast.error(error.message || 'Failed to login with Google');
     }
+    setIsSocialLoginLoading(false);
   };
 
   const handleFacebookLogin = async () => {
