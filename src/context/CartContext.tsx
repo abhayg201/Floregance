@@ -39,7 +39,7 @@ const initialState: CartState = {
 
 const calculateCartTotals = (items: CartItem[]): Pick<CartState, 'subtotal' | 'shipping' | 'total'> => {
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // Free shipping over $150, otherwise $10
+  // Free shipping over ₹150, otherwise ₹10
   const shipping = subtotal > 150 ? 0 : 10;
   const total = subtotal + shipping;
   

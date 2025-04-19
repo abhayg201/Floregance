@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -525,7 +526,7 @@ const Checkout = () => {
                               <p className="text-sm text-foreground/70">Qty: {item.quantity}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                              <p className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</p>
                             </div>
                           </div>
                         ))}
@@ -534,20 +535,20 @@ const Checkout = () => {
                       <div className="space-y-3 pt-4 border-t border-border">
                         <div className="flex justify-between">
                           <span className="text-foreground/70">Subtotal</span>
-                          <span>${subtotal.toFixed(2)}</span>
+                          <span>₹{subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-foreground/70">Shipping</span>
-                          <span>{shipping > 0 ? `$${shipping.toFixed(2)}` : 'Free'}</span>
+                          <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
                         </div>
                         {shipping === 0 && (
                           <div className="text-sm text-primary">
-                            Free shipping on orders over $150
+                            Free shipping on orders over ₹150
                           </div>
                         )}
                         <div className="pt-3 border-t border-border flex justify-between font-medium">
                           <span>Total</span>
-                          <span>${total.toFixed(2)}</span>
+                          <span>₹{total.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
