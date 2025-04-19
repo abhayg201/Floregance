@@ -198,8 +198,8 @@ const Products = () => {
                     <h3 className="font-medium text-lg mb-4">Price Range</h3>
                     <div className="px-3">
                       <div className="flex justify-between mb-2 text-sm">
-                        <span>${priceRange.min}</span>
-                        <span>${priceRange.max}</span>
+                        <span>₹{priceRange.min}</span>
+                        <span>₹{priceRange.max}</span>
                       </div>
                       <input
                         type="range"
@@ -272,8 +272,8 @@ const Products = () => {
                     <h4 className="font-medium mb-3">Price Range</h4>
                     <div className="px-3">
                       <div className="flex justify-between mb-2 text-sm">
-                        <span>${priceRange.min}</span>
-                        <span>${priceRange.max}</span>
+                        <span>₹{priceRange.min}</span>
+                        <span>₹{priceRange.max}</span>
                       </div>
                       <input
                         type="range"
