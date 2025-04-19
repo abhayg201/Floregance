@@ -116,7 +116,7 @@ const SearchDialog: React.FC<SearchDialogProps> = ({ open, onOpenChange }) => {
                         <span className="text-xs text-muted-foreground">{product.artisan}</span>
                       </div>
                       <div className="ml-auto font-medium">
-                        ${product.price.toFixed(2)}
+                        ₹{product.price.toFixed(2)}
                       </div>
                     </CommandItem>
                   ))}
