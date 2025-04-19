@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { AuthContext, useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -17,8 +17,9 @@ interface EmailVerificationProps {
 }
 
 const EmailVerification = ({ email, onVerified, onCancel }: EmailVerificationProps) => {
-  const { sendEmailVerificationCode, verifyEmail } = useAuth();
+  // const { sendEmailVerificationCode, verifyEmail } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  
   const [codeSent, setCodeSent] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
 
