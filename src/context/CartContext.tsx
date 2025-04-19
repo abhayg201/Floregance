@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Product } from '@/data/products';
+import { Product } from '@/types/product';
 
+// CartItem type extends Product and adds quantity
 interface CartItem extends Product {
   quantity: number;
 }

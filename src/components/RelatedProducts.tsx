@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { Product } from '@/data/products';
+import { Product } from '@/types/product';
 
 interface RelatedProductsProps {
   products: Product[];
