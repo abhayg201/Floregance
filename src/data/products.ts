@@ -5,8 +5,8 @@ export const products: Product[] = [
     id: "hand-woven-wool-rug-01",
     name: "Hand-Woven Wool Rug",
     description: "This exquisite hand-woven wool rug is crafted by skilled artisans using traditional techniques. Each vibrant color comes from natural dyes, and the intricate patterns tell stories passed down through generations. The rug's sturdy construction ensures it will remain beautiful for years to come, while its soft texture provides comfort underfoot.",
-    price: 23999, // Updated to INR (converted from USD)
-    originalPrice: 27999, // Updated to INR
+    price: 23999,
+    originalPrice: 27999,
     images: [
       "https://images.unsplash.com/photo-1584269600519-14dab465f3fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1588625500633-a0cd518f0f60?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -35,7 +35,7 @@ export const products: Product[] = [
     id: "handcrafted-ceramic-vase-02",
     name: "Handcrafted Ceramic Vase",
     description: "Elegantly handcrafted by master potter Ibrahim, this ceramic vase combines traditional techniques with modern design sensibilities. The subtle blue glaze, achieved through a special firing process, creates depth and character that changes with the light. Each piece has slight variations, making it truly one of a kind.",
-    price: 10299, // Updated to INR (converted from USD)
+    price: 2999,
     images: [
       "https://images.unsplash.com/photo-1578500351865-0a9afd3a6397?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1565978771542-0db9c5232acf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -56,8 +56,8 @@ export const products: Product[] = [
     id: "hand-embroidered-pillow-03",
     name: "Hand-Embroidered Pillow Cover",
     description: "These exquisite pillow covers feature intricate hand embroidery using techniques passed down through generations. The vibrant threads create stunning patterns inspired by ancient motifs, adding a touch of artisanal beauty to any home. The natural cotton backing ensures durability and comfort.",
-    price: 6299, // Updated to INR (converted from USD)
-    originalPrice: 7899, // Updated to INR
+    price: 1499,
+    originalPrice: 1999,
     images: [
       "https://images.unsplash.com/photo-1558997519-83ea9252edf8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1522771930-78848d9293e8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -78,7 +78,7 @@ export const products: Product[] = [
     id: "handmade-brass-jewelry-04",
     name: "Handmade Brass Earrings",
     description: "These elegant handmade brass earrings combine traditional craftsmanship with contemporary design. Each piece is carefully cast and finished by hand, resulting in a unique product with subtle variations that tell the story of its creation. The earrings feature a hammered texture that catches the light beautifully.",
-    price: 4599, // Updated to INR (converted from USD)
+    price: 1299,
     images: [
       "https://images.unsplash.com/photo-1602753058429-ebf7d208a16f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1589128777073-263566ae5e4d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -99,7 +99,7 @@ export const products: Product[] = [
     id: "handwoven-basket-05",
     name: "Handwoven Storage Basket",
     description: "Meticulously crafted by skilled artisans, this handwoven basket combines functionality with beautiful design. Made from sustainable materials, each basket features a unique pattern achieved through traditional weaving techniques. Perfect for storage or as a decorative accent in any room.",
-    price: 5199,
+    price: 1899,
     images: [
       "https://images.unsplash.com/photo-1615486511262-c7b5c11a6c6a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1622468415824-78383d140348?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -120,7 +120,7 @@ export const products: Product[] = [
     id: "block-printed-table-runner-06",
     name: "Block-Printed Table Runner",
     description: "This stunning table runner features intricate patterns created using traditional wooden block printing techniques. Artisans hand-carve each block and apply natural dyes to create these beautiful designs. The 100% cotton fabric provides durability while the hand-finished edges ensure longevity.",
-    price: 3599,
+    price: 999,
     images: [
       "https://images.unsplash.com/photo-1617806118233-18e1de247200?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1634322245656-fa0d4b8162be?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -141,7 +141,7 @@ export const products: Product[] = [
     id: "carved-wooden-bowl-07",
     name: "Hand-Carved Wooden Bowl",
     description: "Expertly carved from a single piece of sustainable acacia wood, this bowl showcases the natural beauty of the material with its unique grain patterns. Each bowl is finished with food-safe oils to enhance the wood's natural luster and provide protection. Perfect for serving or as a decorative piece.",
-    price: 7199,
+    price: 2499,
     images: [
       "https://images.unsplash.com/photo-1635908365076-21e9b92a7c4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1633781297433-1f8af9b84392?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -162,7 +162,7 @@ export const products: Product[] = [
     id: "macrame-wall-hanging-08",
     name: "Macramé Wall Hanging",
     description: "This intricate macramé wall hanging is hand-knotted using traditional techniques. The natural cotton fibers create beautiful texture and dimension, while the asymmetrical design adds modern appeal. Each piece is unique due to the handmade nature, making it a special addition to any space.",
-    price: 9599,
+    price: 3499,
     images: [
       "https://images.unsplash.com/photo-1605283176568-9b41fde3672e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1612212912995-0c7a2ecc0839?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
@@ -181,6 +181,6 @@ export const products: Product[] = [
   }
 ].map(product => ({
   ...product,
-  price: Math.round(product.price), // Ensure whole number prices
+  price: Math.round(product.price),
   originalPrice: product.originalPrice ? Math.round(product.originalPrice) : undefined
 }));

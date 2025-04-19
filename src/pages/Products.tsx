@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -14,13 +13,11 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [sortOption, setSortOption] = useState("featured");
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 500 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 30000 });
   const [searchQuery, setSearchQuery] = useState<string | null>(null);
   
-  // Get all unique categories
   const categories = Array.from(new Set(products.map(product => product.category)));
   
-  // Filter products based on search params
   useEffect(() => {
     const categoryParam = searchParams.get('category');
     const searchParam = searchParams.get('search');
@@ -35,7 +32,6 @@ const Products = () => {
     
     let filtered = [...products];
     
-    // Apply search filter
     if (searchParam) {
       const query = searchParam.toLowerCase();
       filtered = filtered.filter(product => 
@@ -46,19 +42,16 @@ const Products = () => {
       );
     }
     
-    // Apply category filter
     if (selectedCategory) {
       filtered = filtered.filter(
         product => product.category.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
     
-    // Apply price filter
     filtered = filtered.filter(
       product => product.price >= priceRange.min && product.price <= priceRange.max
     );
     
-    // Apply sorting
     switch (sortOption) {
       case "price-low":
         filtered.sort((a, b) => a.price - b.price);
@@ -127,7 +120,6 @@ const Products = () => {
               </p>
             </div>
             
-            {/* Active filters display */}
             {(selectedCategory || searchQuery) && (
               <div className="flex flex-wrap gap-2 mb-6">
                 {selectedCategory && (
@@ -151,7 +143,6 @@ const Products = () => {
               </div>
             )}
             
-            {/* Mobile filter button */}
             <div className="flex md:hidden justify-between items-center mb-6">
               <button
                 onClick={() => setShowFilter(!showFilter)}
@@ -163,7 +154,6 @@ const Products = () => {
             </div>
             
             <div className="flex flex-col md:flex-row gap-8">
-              {/* Filter sidebar - desktop */}
               <div className="hidden md:block w-full md:w-64 flex-shrink-0">
                 <div className="sticky top-28 p-6 border border-border rounded-lg bg-white">
                   <h3 className="font-medium text-lg mb-4">Categories</h3>
@@ -198,14 +188,14 @@ const Products = () => {
                     <h3 className="font-medium text-lg mb-4">Price Range</h3>
                     <div className="px-3">
                       <div className="flex justify-between mb-2 text-sm">
-                        <span>₹{priceRange.min}</span>
-                        <span>₹{priceRange.max}</span>
+                        <span>₹{priceRange.min.toLocaleString('en-IN')}</span>
+                        <span>₹{priceRange.max.toLocaleString('en-IN')}</span>
                       </div>
                       <input
                         type="range"
                         min="0"
-                        max="500"
-                        step="10"
+                        max="30000"
+                        step="1000"
                         value={priceRange.max}
                         onChange={(e) => setPriceRange({...priceRange, max: parseInt(e.target.value)})}
                         className="w-full"
@@ -215,7 +205,6 @@ const Products = () => {
                 </div>
               </div>
               
-              {/* Mobile filter panel */}
               <div 
                 className={cn(
                   "fixed inset-0 bg-white z-40 transition-transform transform duration-300 ease-out-sine pt-20",
@@ -272,14 +261,14 @@ const Products = () => {
                     <h4 className="font-medium mb-3">Price Range</h4>
                     <div className="px-3">
                       <div className="flex justify-between mb-2 text-sm">
-                        <span>₹{priceRange.min}</span>
-                        <span>₹{priceRange.max}</span>
+                        <span>₹{priceRange.min.toLocaleString('en-IN')}</span>
+                        <span>₹{priceRange.max.toLocaleString('en-IN')}</span>
                       </div>
                       <input
                         type="range"
                         min="0"
-                        max="500"
-                        step="10"
+                        max="30000"
+                        step="1000"
                         value={priceRange.max}
                         onChange={(e) => setPriceRange({...priceRange, max: parseInt(e.target.value)})}
                         className="w-full"
@@ -317,7 +306,6 @@ const Products = () => {
                 </div>
               </div>
               
-              {/* Product grid */}
               <div className="flex-1">
                 <div className="hidden md:flex justify-between items-center mb-6">
                   <p className="text-foreground/70">
@@ -355,7 +343,7 @@ const Products = () => {
                     <button
                       onClick={() => {
                         handleCategoryChange(null);
-                        setPriceRange({ min: 0, max: 500 });
+                        setPriceRange({ min: 0, max: 30000 });
                         setSortOption("featured");
                         clearSearchQuery();
                       }}
