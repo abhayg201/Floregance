@@ -21,7 +21,7 @@ export const createPaymentRecord = async (
   orderId: string,
   razorpayOrderId: string,
   amount: number,
-  currency: string = 'INR'
+  currency: string = 'INR' // Default currency set to INR
 ): Promise<string | null> => {
   try {
     const { data, error } = await supabase
