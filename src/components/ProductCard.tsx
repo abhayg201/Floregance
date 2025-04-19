@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -52,7 +51,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               onLoad={() => setImageLoaded(true)}
             />
             
-            {/* Quick actions overlay */}
             <div className={cn(
               "absolute inset-0 bg-black/0 transition-all duration-300 flex items-center justify-center gap-2",
               isHovered ? "opacity-100" : "opacity-0"
@@ -84,25 +82,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         </Link>
         
-        {/* Category badge */}
         <div className="absolute top-3 left-3">
           <span className="inline-block px-2 py-1 text-xs bg-white/80 backdrop-blur-sm rounded text-foreground/80">
             {product.category}
           </span>
         </div>
         
-        {/* Product details */}
         <Link to={`/products/${product.id}`}>
           <div className="mt-4 space-y-1">
             <h3 className="font-medium text-foreground">{product.name}</h3>
             <p className="text-sm text-foreground/70">{product.artisan}</p>
             <div className="flex items-baseline justify-between mt-1">
               <p className="font-medium">
-                ${product.price.toFixed(2)}
+                ₹{product.price.toLocaleString()}
               </p>
               {product.originalPrice && (
                 <p className="text-sm text-foreground/60 line-through">
-                  ${product.originalPrice.toFixed(2)}
+                  ₹{product.originalPrice.toLocaleString()}
                 </p>
               )}
             </div>
