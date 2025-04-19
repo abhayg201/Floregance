@@ -1,6 +1,5 @@
-
 import { supabase } from '@/lib/supabase';
-import type { Product } from '@/data/products';
+import type { Product } from '@/types/product';
 
 // Fetch all products from Supabase
 export const getAllProducts = async (): Promise<Product[]> => {
