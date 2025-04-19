@@ -99,7 +99,7 @@ const Cart = () => {
                           
                           <div className="md:col-span-2 text-center md:text-center flex md:block items-center justify-between">
                             <span className="text-sm md:hidden font-medium">Price:</span>
-                            <span>${item.price.toFixed(2)}</span>
+                            <span>₹{item.price.toFixed(2)}</span>
                           </div>
                           
                           <div className="md:col-span-2 text-center">
@@ -128,7 +128,7 @@ const Cart = () => {
                           
                           <div className="md:col-span-2 text-right flex items-center justify-between md:block">
                             <span className="text-sm md:hidden font-medium">Total:</span>
-                            <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         </div>
                       </div>
@@ -143,20 +143,20 @@ const Cart = () => {
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between">
                         <span className="text-foreground/70">Subtotal</span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>₹{subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-foreground/70">Shipping</span>
-                        <span>{shipping > 0 ? `$${shipping.toFixed(2)}` : 'Free'}</span>
+                        <span>{shipping > 0 ? `₹${shipping.toFixed(2)}` : 'Free'}</span>
                       </div>
                       {shipping === 0 && (
                         <div className="text-sm text-primary">
-                          Free shipping on orders over $150
+                          Free shipping on orders over ₹150
                         </div>
                       )}
                       <div className="pt-3 border-t border-border flex justify-between font-medium">
                         <span>Total</span>
-                        <span>${total.toFixed(2)}</span>
+                        <span>₹{total.toFixed(2)}</span>
                       </div>
                     </div>
                     
