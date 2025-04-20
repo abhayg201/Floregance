@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { profileService } from '@/services/profile.service';
 import { 
   signUp as apiSignUp, 
   signIn as apiSignIn, 
@@ -30,6 +31,7 @@ interface AuthContextType {
   sendEmailVerificationCode: (email: string) => Promise<EmailVerificationResponse>;
   verifyEmail: (email: string, otp: string) => Promise<EmailVerificationResponse>;
   logout: () => Promise<void>;
+  setIsSocialLoginLoading: (isLoading: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,30 +51,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('Setting up auth state change listener');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
-        setIsLoading(true);
+    // const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    //   async (event, session) => {
+    //     console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
+    //     setIsLoading(true);
         
-        if (session?.user) {
-          console.log('Session user exists, fetching profile');
-          try {
-            const userProfile = await getCurrentUserProfile();
-            console.log('User profile fetched:', userProfile);
-            setUser(userProfile);
-          } catch (error) {
-            console.error('Error getting user profile on auth state change:', error);
-            setUser(null);
-          }
-        } else {
-          console.log('No session user, setting user to null');
-          setUser(null);
-        }
+    //     if (session?.user) {
+    //       console.log('Session user exists, fetching profile');
+    //       try {
+    //         const userProfile = await getCurrentUserProfile();
+    //         console.log('User profile fetched:', userProfile);
+    //         setUser(userProfile);
+    //       } catch (error) {
+    //         console.error('Error getting user profile on auth state change:', error);
+    //         setUser(null);
+    //       }
+    //     } else {
+    //       console.log('No session user, setting user to null');
+    //       setUser(null);
+    //     }
         
-        setIsLoading(false);
-      }
-    );
+    //     setIsLoading(false);
+    //   }
+    // );
 
     const checkUser = async () => {
       try {
@@ -90,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (data.session) {
           console.log('Session exists, fetching user profile');
-          const userProfile = await getCurrentUserProfile();
+          const userProfile = await profileService.getCurrentUserProfile();
           console.log('Initial user profile:', userProfile);
           setUser(userProfile);
         } else {
@@ -107,10 +108,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkUser();
 
-    return () => {
-      console.log('Cleaning up auth subscription');
-      subscription.unsubscribe();
-    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -256,7 +253,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         verifyPhone,
         sendEmailVerificationCode,
         verifyEmail,
-        logout
+        logout,
+        setIsSocialLoginLoading
       }}
     >
       {children}
