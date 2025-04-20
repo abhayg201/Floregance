@@ -20,8 +20,8 @@ const corsHeaders = {
 };
 
 // Function to create Razorpay order
-async function createRazorpayOrder(amount: number, orderId: string) {
-  console.log(`Creating Razorpay order for amount: ${amount}, orderId: ${orderId}`);
+async function createRazorpayOrder(amount: number, receipt: string) {
+  console.log(`Creating Razorpay order for amount: ${amount}, receipt: ${receipt}`);
 
   const auth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
   
@@ -34,9 +34,18 @@ async function createRazorpayOrder(amount: number, orderId: string) {
     body: JSON.stringify({
       amount: Math.round(amount * 100), // Convert to lowest currency unit (paise)
       currency: 'INR',
-      receipt: orderId,
+      receipt: receipt,
+      notes: {
+        order_id: receipt
+      }
     }),
   });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    console.error('Razorpay API error:', errorData);
+    throw new Error(`Razorpay API error: ${response.status} ${errorData}`);
+  }
 
   const result = await response.json();
   console.log('Razorpay order created:', result);
@@ -102,7 +111,8 @@ async function updatePaymentRecord(
       razorpay_payment_id: razorpayPaymentId,
       razorpay_signature: razorpaySignature,
       status,
-      payment_data: paymentData
+      payment_data: paymentData,
+      updated_at: new Date().toISOString()
     })
     .eq('razorpay_order_id', razorpayOrderId);
 
@@ -121,13 +131,12 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/');
-    const functionName = pathParts[pathParts.length - 1];
+    const path = url.pathname;
     
-    console.log(`Received request for function: ${functionName}`, url.pathname);
+    console.log(`Processing request for path: ${path}`);
     
     // Create order endpoint
-    if (functionName === 'razorpay') {
+    if (path.endsWith('/create-order')) {
       const { amount, orderId, user_id } = await req.json();
       
       console.log(`Creating order with amount: ${amount}, orderId: ${orderId}, user_id: ${user_id}`);
@@ -155,45 +164,46 @@ serve(async (req) => {
         );
       }
 
-      const razorpayOrder = await createRazorpayOrder(amount, orderId);
-      
-      if (razorpayOrder.error) {
+      try {
+        const razorpayOrder = await createRazorpayOrder(amount, orderId);
+        
+        // Create payment record in database
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('razorpay_payments')
+          .insert({
+            order_id: orderId,
+            razorpay_order_id: razorpayOrder.id,
+            amount,
+            currency: 'INR',
+            status: 'created'
+          })
+          .select()
+          .single();
+
+        if (paymentError) {
+          console.error('Error creating payment record:', paymentError);
+        }
+
         return new Response(
-          JSON.stringify({ error: razorpayOrder.error }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          JSON.stringify({
+            id: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            key: razorpayKeyId
+          }),
+          { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      } catch (error) {
+        console.error('Error creating Razorpay order:', error);
+        return new Response(
+          JSON.stringify({ error: error.message || 'Error creating Razorpay order' }),
+          { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
-
-      // Create payment record in database
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('razorpay_payments')
-        .insert({
-          order_id: orderId,
-          razorpay_order_id: razorpayOrder.id,
-          amount,
-          currency: 'INR',
-          status: 'created'
-        })
-        .select()
-        .single();
-
-      if (paymentError) {
-        console.error('Error creating payment record:', paymentError);
-      }
-
-      return new Response(
-        JSON.stringify({
-          id: razorpayOrder.id,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency,
-          key: razorpayKeyId
-        }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
     }
     
     // Payment verification endpoint
-    else if (functionName === 'verify-payment') {
+    else if (path.endsWith('/verify-payment')) {
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
 
       console.log(`Verifying payment: orderId=${razorpay_order_id}, paymentId=${razorpay_payment_id}`);
@@ -247,6 +257,60 @@ serve(async (req) => {
           paymentUpdated: paymentUpdateSuccess,
           orderUpdated: orderUpdateSuccess
         }),
+        { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+    
+    // Webhook handler (for payment status updates)
+    else if (path.endsWith('/webhook')) {
+      const signature = req.headers.get('x-razorpay-signature') || '';
+      const payload = await req.text();
+      
+      if (!signature) {
+        return new Response(
+          JSON.stringify({ error: 'Missing webhook signature' }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      
+      const isValidSignature = verifyWebhookSignature(payload, signature);
+      if (!isValidSignature) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid webhook signature' }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      
+      // Process the webhook payload
+      const payloadJson = JSON.parse(payload);
+      console.log('Webhook received:', payloadJson);
+      
+      // Handle different event types
+      const event = payloadJson.event;
+      
+      if (event === 'payment.authorized' || event === 'payment.captured') {
+        const payment = payloadJson.payload.payment.entity;
+        const orderId = payment.notes?.order_id;
+        
+        if (orderId) {
+          // Update payment status
+          await updatePaymentRecord(
+            payment.order_id,
+            payment.id,
+            '',  // No signature in webhook
+            event === 'payment.captured' ? 'captured' : 'authorized',
+            payment
+          );
+          
+          // Update order status
+          if (event === 'payment.captured') {
+            await updateOrderStatus(orderId, 'processing');
+          }
+        }
+      }
+      
+      return new Response(
+        JSON.stringify({ received: true }),
         { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
