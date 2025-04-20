@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -7,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useToast } from '@/components/ui/use-toast';
 import { createOrder } from '@/services/orderService';
+import { verifyRazorpayPayment } from '@/services/razorpayService';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 
@@ -18,6 +18,11 @@ declare global {
 
 const loadRazorpayScript = () => {
   return new Promise<boolean>((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.onload = () => resolve(true);
@@ -47,6 +52,7 @@ const Checkout = () => {
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [processingOrder, setProcessingOrder] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
   
   // Redirect to home if cart is empty
   useEffect(() => {
@@ -57,77 +63,92 @@ const Checkout = () => {
 
   // Load Razorpay script when component mounts
   useEffect(() => {
-    loadRazorpayScript();
-  }, []);
+    const loadScript = async () => {
+      const loaded = await loadRazorpayScript();
+      setScriptLoaded(loaded);
+      if (!loaded) {
+        toast({
+          title: "Warning",
+          description: "Failed to load payment gateway. Please refresh the page or try again later.",
+          duration: 5000,
+        });
+      }
+    };
+    
+    loadScript();
+  }, [toast]);
 
   // Check for payment verification from URL parameters after Razorpay redirect
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const razorpayPaymentId = searchParams.get('razorpay_payment_id');
-    const razorpayOrderId = searchParams.get('razorpay_order_id');
-    const razorpaySignature = searchParams.get('razorpay_signature');
-    
-    if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
-      // Verify the payment
-      verifyPayment(razorpayPaymentId, razorpayOrderId, razorpaySignature);
-    }
-  }, [location]);
-
-  const verifyPayment = async (paymentId: string, orderId: string, signature: string) => {
-    try {
-      setProcessingOrder(true);
+    const verifyPaymentFromURL = async () => {
+      const searchParams = new URLSearchParams(location.search);
+      const razorpayPaymentId = searchParams.get('razorpay_payment_id');
+      const razorpayOrderId = searchParams.get('razorpay_order_id');
+      const razorpaySignature = searchParams.get('razorpay_signature');
       
-      const { data, error } = await supabase.functions.invoke('razorpay', {
-        body: {
-          razorpay_payment_id: paymentId,
-          razorpay_order_id: orderId,
-          razorpay_signature: signature
-        },
-        method: 'POST',
-      });
-
-      if (error) {
-        console.error('Payment verification error:', error);
-        toast({
-          title: "Payment Verification Failed",
-          description: "There was a problem verifying your payment. Please contact support.",
-          duration: 5000,
-        });
-        return;
-      }
-
-      if (data.verified) {
-        clearCart();
-        navigate('/order-confirmation', { 
-          state: { 
-            orderId: data.orderId,
-            email: formData.email
-          } 
-        });
+      if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
+        setProcessingOrder(true);
         
-        toast({
-          title: "Payment Successful!",
-          description: "Thank you for your purchase.",
-          duration: 5000,
-        });
-      } else {
-        toast({
-          title: "Payment Verification Failed",
-          description: "There was a problem verifying your payment. Please contact support.",
-          duration: 5000,
-        });
+        try {
+          // Call our verification function
+          const verified = await verifyRazorpayPayment(
+            razorpayOrderId,
+            razorpayPaymentId,
+            razorpaySignature
+          );
+          
+          if (verified) {
+            // Get order ID associated with this payment
+            const { data, error } = await supabase
+              .from('razorpay_payments')
+              .select('order_id, id')
+              .eq('razorpay_order_id', razorpayOrderId)
+              .single();
+              
+            if (error || !data) {
+              throw new Error('Could not find associated order');
+            }
+            
+            // Clear the cart and navigate to success page
+            clearCart();
+            navigate('/order-confirmation', { 
+              state: { 
+                orderId: data.order_id,
+                email: formData.email || user?.email || ''
+              } 
+            });
+            
+            toast({
+              title: "Payment Successful!",
+              description: "Thank you for your purchase.",
+              duration: 5000,
+            });
+          } else {
+            toast({
+              title: "Payment Verification Failed",
+              description: "There was a problem verifying your payment. Please contact support.",
+              duration: 5000,
+            });
+          }
+        } catch (error) {
+          console.error('Error during payment verification:', error);
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred. Please try again later.",
+            duration: 5000,
+          });
+        } finally {
+          setProcessingOrder(false);
+          
+          // Clean up URL parameters after processing
+          const cleanUrl = window.location.pathname;
+          navigate(cleanUrl, { replace: true });
+        }
       }
-    } catch (error) {
-      console.error('Error during payment verification:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again later.",
-        duration: 5000,
-      });
-    } finally {
-      setProcessingOrder(false);
-    }
-  };
+    };
+    
+    verifyPaymentFromURL();
+  }, [location, navigate, clearCart, toast, formData.email, user?.email]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -161,6 +182,11 @@ const Checkout = () => {
       errors.email = 'Please enter a valid email address';
     }
     
+    // Phone validation for Indian numbers
+    if (formData.phone && !/^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/.test(formData.phone)) {
+      errors.phone = 'Please enter a valid Indian phone number';
+    }
+    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -184,6 +210,15 @@ const Checkout = () => {
         duration: 3000,
       });
       navigate('/login', { state: { from: '/checkout' } });
+      return;
+    }
+    
+    if (!scriptLoaded) {
+      toast({
+        title: "Payment gateway not loaded",
+        description: "Please refresh the page and try again.",
+        duration: 3000,
+      });
       return;
     }
     
@@ -218,18 +253,17 @@ const Checkout = () => {
         throw new Error('Failed to create order');
       }
 
-      // Create Razorpay order
-      const { data, error } = await supabase.functions.invoke('razorpay', {
+      // Create Razorpay order using the edge function
+      const { data, error } = await supabase.functions.invoke('razorpay/create-order', {
         body: {
           amount: total,
           orderId,
           user_id: user.id
-        },
-        method: 'POST',
+        }
       });
 
-      if (error) {
-        throw new Error(error.message);
+      if (error || !data) {
+        throw new Error(error?.message || 'Failed to create payment');
       }
 
       if (window.Razorpay) {
@@ -241,6 +275,20 @@ const Checkout = () => {
           name: "Craft Bazaar",
           description: "Order Payment",
           order_id: data.id,
+          handler: function(response: any) {
+            // This will be called on successful payment
+            // We will verify this on the server side
+            const paymentId = response.razorpay_payment_id;
+            const orderId = response.razorpay_order_id;
+            const signature = response.razorpay_signature;
+            
+            // Redirect to the same page with query params for verification
+            const returnUrl = new URL(window.location.href);
+            returnUrl.searchParams.set('razorpay_payment_id', paymentId);
+            returnUrl.searchParams.set('razorpay_order_id', orderId);
+            returnUrl.searchParams.set('razorpay_signature', signature);
+            window.location.href = returnUrl.toString();
+          },
           prefill: {
             name: `${formData.firstName} ${formData.lastName}`,
             email: formData.email,
@@ -252,16 +300,18 @@ const Checkout = () => {
           theme: {
             color: "#693423"
           },
-          handler: function() {
-            // This handler will not be called on browser redirect
-            // For browser redirect, use the verify payment code in useEffect
-          },
           modal: {
             ondismiss: function() {
               setProcessingOrder(false);
+              toast({
+                title: "Payment Cancelled",
+                description: "You can try again when you're ready.",
+                duration: 3000,
+              });
             }
           }
         };
+        
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } else {
@@ -450,7 +500,7 @@ const Checkout = () => {
                       </div>
                     </section>
                     
-                    {/* Payment Information Section - Replaced with Razorpay */}
+                    {/* Payment Information Section - Razorpay */}
                     <section>
                       <h2 className="font-serif text-xl font-medium mb-4">Payment Information</h2>
                       <div className="border border-border rounded-md p-6">
