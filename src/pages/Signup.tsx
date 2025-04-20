@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -46,15 +45,16 @@ const Signup = () => {
       console.log('Form submitted with values:', { ...values, password: '[REDACTED]' });
       await registerUser(values.name, values.email, values.password);
       toast.success('Account created successfully!');
-      navigate('/');
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
     } catch (error: any) {
       console.error('Signup error:', error);
       
-      // More user-friendly error messages
-      if (error.message?.includes('email_not_confirmed')) {
-        setErrorMessage('This email is already registered but not confirmed. Please check your inbox for a confirmation email or try signing in.');
-      } else if (error.message?.includes('already registered')) {
+      if (error.message?.includes('already registered') || error.message?.includes('already in use')) {
         setErrorMessage('This email is already registered. Please use a different email or try signing in.');
+      } else if (error.message?.includes('email_not_confirmed')) {
+        setErrorMessage('This email is already registered but not confirmed. Please check your inbox for a confirmation email or try signing in.');
       } else if (error.message?.includes('security purposes') || error.message?.includes('over_email_send_rate_limit')) {
         setErrorMessage('Too many registration attempts. Please try again after a few minutes.');
       } else {

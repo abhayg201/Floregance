@@ -6,11 +6,14 @@ import { UserProfile } from './types/auth.types';
 class ProfileService {
   // Create a profile for a new user
   async createProfile(userId: string, email: string, name: string): Promise<void> {
+    // Generate an avatar URL for the user
+    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`;
+    
     const profileData = {
       id: userId,
       email,
       name,
-      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+      avatar_url: avatarUrl,
     };
     console.log('Creating profile for user:', profileData);
     
@@ -50,11 +53,20 @@ class ProfileService {
         // If the profile doesn't exist yet (e.g., for OAuth users), create one
         if (error.code === 'PGRST116') {
           console.log('Profile not found, attempting to create one');
+          // Get name from metadata or use email username
+          const userName = authData.user.user_metadata?.name || 
+                          authData.user.user_metadata?.full_name || 
+                          (authData.user.email ? authData.user.email.split('@')[0] : 'User');
+                          
+          // Get avatar from metadata or generate one
+          const userAvatar = authData.user.user_metadata?.avatar_url || 
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${authData.user.email}`;
+          
           const newProfile = {
             id: authData.user.id,
             email: authData.user.email,
-            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0] || 'User',
-            avatar_url: authData.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authData.user.email}`,
+            name: userName,
+            avatar_url: userAvatar,
           };
           
           const { error: insertError } = await supabase.from('profiles').insert(newProfile);
@@ -79,6 +91,17 @@ class ProfileService {
         }
         
         return null;
+      }
+      
+      // Make sure avatar_url exists
+      if (!data.avatar_url && data.email) {
+        data.avatar_url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.email}`;
+        
+        // Update the profile with the new avatar_url
+        await supabase
+          .from('profiles')
+          .update({ avatar_url: data.avatar_url })
+          .eq('id', authData.user.id);
       }
       
       // Add provider information and make sure avatar is accessible via both avatar and avatar_url
