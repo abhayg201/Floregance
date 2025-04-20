@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import type { Order } from './orderService';
 
@@ -90,6 +89,67 @@ export const getPaymentByOrderId = async (orderId: string): Promise<RazorpayPaym
     console.error(`Error fetching payment for order ${orderId}:`, error);
     return null;
   }
+};
+
+// Load Razorpay Script
+export const loadRazorpayScript = () => {
+  return new Promise<boolean>((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
+// Initialize Razorpay Payment
+export const initializeRazorpayPayment = async (
+  orderData: {
+    id: string;
+    amount: number;
+    currency: string;
+    key: string;
+  },
+  userInfo: {
+    name: string;
+    email: string;
+    contact: string;
+  },
+  orderId: string,
+  onSuccess: (response: any) => void
+) => {
+  const options = {
+    key: orderData.key,
+    amount: orderData.amount,
+    currency: orderData.currency,
+    name: "Craft Bazaar",
+    description: "Order Payment",
+    order_id: orderData.id,
+    handler: onSuccess,
+    prefill: {
+      name: userInfo.name,
+      email: userInfo.email,
+      contact: userInfo.contact
+    },
+    notes: {
+      order_id: orderId
+    },
+    theme: {
+      color: "#693423"
+    }
+  };
+
+  const razorpay = new window.Razorpay(options);
+  razorpay.open();
+  
+  razorpay.on('payment.failed', function(response: any){
+    console.error('Payment failed:', response.error);
+  });
 };
 
 // Verify payment with Razorpay signature
