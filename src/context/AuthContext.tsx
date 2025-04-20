@@ -51,30 +51,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('Setting up auth state change listener');
-    // const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    //   async (event, session) => {
-    //     console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
-    //     setIsLoading(true);
+    
+    // First set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
         
-    //     if (session?.user) {
-    //       console.log('Session user exists, fetching profile');
-    //       try {
-    //         const userProfile = await getCurrentUserProfile();
-    //         console.log('User profile fetched:', userProfile);
-    //         setUser(userProfile);
-    //       } catch (error) {
-    //         console.error('Error getting user profile on auth state change:', error);
-    //         setUser(null);
-    //       }
-    //     } else {
-    //       console.log('No session user, setting user to null');
-    //       setUser(null);
-    //     }
-        
-    //     setIsLoading(false);
-    //   }
-    // );
+        if (session?.user) {
+          console.log('Session user exists, fetching profile');
+          try {
+            const userProfile = await getCurrentUserProfile();
+            console.log('User profile fetched:', userProfile);
+            setUser(userProfile);
+          } catch (error) {
+            console.error('Error getting user profile on auth state change:', error);
+            setUser(null);
+          }
+        } else {
+          console.log('No session user, setting user to null');
+          setUser(null);
+        }
+      }
+    );
 
+    // Then check for an existing session
     const checkUser = async () => {
       try {
         console.log('Initial check for logged in user');
@@ -108,6 +108,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkUser();
 
+    // Cleanup the subscription when the component unmounts
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {

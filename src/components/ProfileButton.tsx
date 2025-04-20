@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -67,8 +66,11 @@ const ProfileButton = () => {
     );
   }
 
-  // Use avatar or avatar_url, whichever is available
-  const avatarUrl = user?.avatar || user?.avatar_url;
+  // Generate avatar url for email-password users if not available
+  const avatarUrl = user?.avatar || user?.avatar_url || 
+    (user?.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}` : null);
+  
+  const userInitials = user?.name?.substring(0, 2).toUpperCase() || 'U';
 
   // Authenticated user view (same for mobile and desktop)
   return (
@@ -80,7 +82,7 @@ const ProfileButton = () => {
               <AvatarImage src={avatarUrl} alt={user.name} />
             ) : (
               <AvatarFallback>
-                {user?.name?.substring(0, 2).toUpperCase() || 'U'}
+                {userInitials}
               </AvatarFallback>
             )}
           </Avatar>

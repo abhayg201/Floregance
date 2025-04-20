@@ -9,6 +9,19 @@ export const signUp = async (email: string, password: string, name: string) => {
   try {
     console.log('Attempting to sign up user:', email);
     
+    // Check if user already exists
+    const { data: existingUsers, error: checkError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .limit(1);
+    
+    if (checkError) {
+      console.error('Error checking for existing user:', checkError);
+    } else if (existingUsers && existingUsers.length > 0) {
+      throw new Error('This email is already registered. Please use a different email or try signing in.');
+    }
+    
     // Proceed with signup
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -38,6 +51,11 @@ export const signUp = async (email: string, password: string, name: string) => {
         }
         
         return signInData;
+      }
+      
+      // Handle user_already_exists error
+      if (error.message && (error.message.includes('already registered') || error.message.includes('already in use'))) {
+        throw new Error('This email is already registered. Please use a different email or try signing in.');
       }
       
       throw error;
