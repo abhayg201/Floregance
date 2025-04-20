@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useToast } from '@/components/ui/use-toast';
 import { createOrder } from '@/services/orderService';
-import { verifyRazorpayPayment } from '@/services/razorpayService';
+import { loadRazorpayScript, initializeRazorpayPayment, verifyRazorpayPayment } from '@/services/razorpayService';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 
@@ -15,21 +15,6 @@ declare global {
     Razorpay: any;
   }
 }
-
-const loadRazorpayScript = () => {
-  return new Promise<boolean>((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-    
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 const Checkout = () => {
   const { items, subtotal, shipping, total, clearCart } = useCart();
@@ -253,8 +238,8 @@ const Checkout = () => {
         throw new Error('Failed to create order');
       }
 
-      // Create Razorpay order using the edge function
-      const { data, error } = await supabase.functions.invoke('razorpay/create-order', {
+      // Create Razorpay order
+      const { data: razorpayOrderData, error } = await supabase.functions.invoke('razorpay/create-order', {
         body: {
           amount: total,
           orderId,
@@ -262,61 +247,33 @@ const Checkout = () => {
         }
       });
 
-      if (error || !data) {
+      if (error || !razorpayOrderData) {
         throw new Error(error?.message || 'Failed to create payment');
       }
 
-      if (window.Razorpay) {
-        // Initialize Razorpay payment
-        const options = {
-          key: data.key,
-          amount: data.amount,
-          currency: data.currency,
-          name: "Craft Bazaar",
-          description: "Order Payment",
-          order_id: data.id,
-          handler: function(response: any) {
-            // This will be called on successful payment
-            // We will verify this on the server side
-            const paymentId = response.razorpay_payment_id;
-            const orderId = response.razorpay_order_id;
-            const signature = response.razorpay_signature;
-            
-            // Redirect to the same page with query params for verification
-            const returnUrl = new URL(window.location.href);
-            returnUrl.searchParams.set('razorpay_payment_id', paymentId);
-            returnUrl.searchParams.set('razorpay_order_id', orderId);
-            returnUrl.searchParams.set('razorpay_signature', signature);
-            window.location.href = returnUrl.toString();
-          },
-          prefill: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            contact: formData.phone
-          },
-          notes: {
-            order_id: orderId
-          },
-          theme: {
-            color: "#693423"
-          },
-          modal: {
-            ondismiss: function() {
-              setProcessingOrder(false);
-              toast({
-                title: "Payment Cancelled",
-                description: "You can try again when you're ready.",
-                duration: 3000,
-              });
-            }
-          }
-        };
-        
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-      } else {
-        throw new Error('Razorpay SDK failed to load');
-      }
+      // Initialize Razorpay payment
+      await initializeRazorpayPayment(
+        razorpayOrderData,
+        {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phone
+        },
+        orderId,
+        function(response: any) {
+          // Handle successful payment
+          const paymentId = response.razorpay_payment_id;
+          const orderId = response.razorpay_order_id;
+          const signature = response.razorpay_signature;
+          
+          // Redirect to verification page with payment details
+          const returnUrl = new URL(window.location.href);
+          returnUrl.searchParams.set('razorpay_payment_id', paymentId);
+          returnUrl.searchParams.set('razorpay_order_id', orderId);
+          returnUrl.searchParams.set('razorpay_signature', signature);
+          window.location.href = returnUrl.toString();
+        }
+      );
     } catch (error) {
       console.error('Payment error:', error);
       toast({
