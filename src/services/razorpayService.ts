@@ -21,7 +21,7 @@ export const createPaymentRecord = async (
   orderId: string,
   razorpayOrderId: string,
   amount: number,
-  currency: string = 'INR' // Default currency set to INR
+  currency: string = 'INR'
 ): Promise<string | null> => {
   try {
     const { data, error } = await supabase
@@ -60,7 +60,8 @@ export const updatePaymentStatus = async (
         razorpay_payment_id: razorpayPaymentId,
         razorpay_signature: razorpaySignature,
         status,
-        payment_data: paymentData
+        payment_data: paymentData,
+        updated_at: new Date().toISOString()
       })
       .eq('razorpay_order_id', razorpayOrderId);
     
@@ -88,5 +89,32 @@ export const getPaymentByOrderId = async (orderId: string): Promise<RazorpayPaym
   } catch (error) {
     console.error(`Error fetching payment for order ${orderId}:`, error);
     return null;
+  }
+};
+
+// Verify payment with Razorpay signature
+export const verifyRazorpayPayment = async (
+  razorpayOrderId: string,
+  razorpayPaymentId: string,
+  razorpaySignature: string
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('razorpay/verify-payment', {
+      body: {
+        razorpay_order_id: razorpayOrderId,
+        razorpay_payment_id: razorpayPaymentId,
+        razorpay_signature: razorpaySignature
+      },
+    });
+
+    if (error) {
+      console.error('Payment verification error:', error);
+      return false;
+    }
+
+    return data.verified === true;
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    return false;
   }
 };
