@@ -106,8 +106,20 @@ const OrderConfirmation = () => {
                   </div>
                   <div>
                     <p className="text-sm text-foreground/70">Payment Status</p>
-                    <p className="font-medium capitalize">{paymentDetails?.status || "Processing"}</p>
+                    <div className="flex items-center">
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                        paymentDetails?.status === 'captured' ? 'bg-green-500' : 
+                        paymentDetails?.status === 'created' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}></span>
+                      <p className="font-medium capitalize">{paymentDetails?.status || "Processing"}</p>
+                    </div>
                   </div>
+                  {paymentDetails?.razorpay_payment_id && (
+                    <div>
+                      <p className="text-sm text-foreground/70">Payment ID</p>
+                      <p className="font-medium">{paymentDetails.razorpay_payment_id}</p>
+                    </div>
+                  )}
                 </div>
                 
                 {orderDetails && (
@@ -120,14 +132,14 @@ const OrderConfirmation = () => {
                             <span className="font-medium">{item.name}</span>
                             <span className="text-sm text-foreground/70 ml-2">x{item.quantity}</span>
                           </div>
-                          <div>${(item.price * item.quantity).toFixed(2)}</div>
+                          <div>₹{(item.price * item.quantity).toFixed(2)}</div>
                         </div>
                       ))}
                     </div>
                     
                     <div className="border-t border-border mt-4 pt-3 flex justify-between font-medium">
                       <span>Total</span>
-                      <span>${orderDetails.total.toFixed(2)}</span>
+                      <span>₹{orderDetails.total.toFixed(2)}</span>
                     </div>
                   </div>
                 )}
