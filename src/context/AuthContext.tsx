@@ -48,35 +48,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSocialLoginLoading, setIsSocialLoginLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    console.log('Setting up auth state change listener');
-    
-    // First set up the auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
-        
-        if (session?.user) {
-          console.log('Session user exists, fetching profile');
-          try {
-            const userProfile = await getCurrentUserProfile();
-            console.log('User profile fetched:', userProfile);
-            setUser(userProfile);
-          } catch (error) {
-            console.error('Error getting user profile on auth state change:', error);
-            setUser(null);
-          }
-        } else {
-          console.log('No session user, setting user to null');
-          setUser(null);
-        }
-      }
-    );
-
     // Then check for an existing session
     const checkUser = async () => {
-      try {
+      try { 
         console.log('Initial check for logged in user');
         setIsLoading(true);
         
@@ -85,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) {
           console.error('Error getting session:', error);
           setUser(null);
+          setIsAuthenticated(false);
           setIsLoading(false);
           return;
         }
@@ -94,13 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userProfile = await profileService.getCurrentUserProfile();
           console.log('Initial user profile:', userProfile);
           setUser(userProfile);
+          setIsAuthenticated(true);
         } else {
           console.log('No active session found');
           setUser(null);
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error checking user:', error);
         setUser(null);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
@@ -108,10 +89,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkUser();
 
-    // Cleanup the subscription when the component unmounts
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -120,6 +97,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiSignIn(email, password);
       console.log('Login successful');
+      
+      // Get the session after successful login
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const userProfile = await getCurrentUserProfile();
+        setUser(userProfile);
+        setIsAuthenticated(true);
+        console.log('Auth state updated with user:', userProfile);
+      }
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -228,17 +214,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    console.log('Logout attempt');
-    setIsLoading(true);
     try {
-      await apiSignOut();
+      // Clear any stored tokens or session data
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error signing out:', error);
+        throw error;
+      }
+      // Reset auth state
       setUser(null);
-      console.log('Logout successful');
+      setIsAuthenticated(false);
+      // Clear any other relevant state
+      // ... any other state cleanup ...
+      
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Logout error:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -246,7 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        isAuthenticated,
         isLoading,
         isSocialLoginLoading,
         login,

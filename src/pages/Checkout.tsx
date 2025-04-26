@@ -281,8 +281,8 @@ const Checkout = () => {
         description: "There was a problem processing your payment. Please try again.",
         duration: 5000,
       });
-      setProcessingOrder(false);
     }
+    setProcessingOrder(false);
   };
   
   return (
