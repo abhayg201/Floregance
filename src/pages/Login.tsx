@@ -1,5 +1,3 @@
-
-import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +10,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { toast } from 'sonner';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
-import EmailVerification from '@/components/EmailVerification';
-import PhoneVerification from '@/components/PhoneVerification';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SEO from '@/components/SEO';
 
 const loginSchema = z.object({
@@ -27,8 +22,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [authMode, setAuthMode] = useState<'email-password' | 'email-verification' | 'phone'>('email-password');
-  const [emailForVerification, setEmailForVerification] = useState('');
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -45,21 +38,8 @@ const Login = () => {
       navigate('/');
     } catch (error: any) {
       console.error('Login error:', error);
-      // Check if the error is related to email confirmation
-      if (error.message?.includes('email not confirmed') || error.message?.includes('Email not confirmed')) {
-        toast.error('Email not confirmed. Please verify your email.');
-        setEmailForVerification(values.email);
-        setAuthMode('email-verification');
-      } else {
-        toast.error('Invalid email or password. Hint: use "password" as the password for demo');
-      }
+      toast.error('Invalid email or password. Hint: use "password" as the password for demo');
     }
-  };
-
-  const handleVerificationSuccess = () => {
-    toast.success('Verification successful! You can now log in.');
-    setAuthMode('email-password');
-    navigate('/');
   };
 
   return (
@@ -81,78 +61,53 @@ const Login = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="email-password" onValueChange={(value: any) => setAuthMode(value)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="email-password">Email</TabsTrigger>
-              <TabsTrigger value="email-verification">Email OTP</TabsTrigger>
-              <TabsTrigger value="phone">Phone</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="email-password">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="your@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm">
-                      <Link to="/signup" className="text-primary hover:text-primary/80">
-                        Don't have an account? Sign up
-                      </Link>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Signing in...' : 'Sign in'}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-
-            <TabsContent value="email-verification">
-              <EmailVerification 
-                email={emailForVerification || form.getValues().email} 
-                onVerified={handleVerificationSuccess}
-                onCancel={() => setAuthMode('email-password')}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="your@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </TabsContent>
 
-            <TabsContent value="phone">
-              <PhoneVerification
-                onVerified={handleVerificationSuccess}
-                onCancel={() => setAuthMode('email-password')}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </TabsContent>
-          </Tabs>
+
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <Link to="/signup" className="text-primary hover:text-primary/80">
+                    Don't have an account? Sign up
+                  </Link>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+          </Form>
 
           <SocialLoginButtons />
 

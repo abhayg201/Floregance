@@ -25,9 +25,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<{ provider: string; url: string | null }>;
-  loginWithFacebook: () => Promise<{ provider: string; url: string | null }>;
-  loginWithPhone: (phoneNumber: string) => Promise<PhoneAuthResponse>;
-  verifyPhone: (phoneNumber: string, otp: string) => Promise<PhoneAuthResponse>;
   sendEmailVerificationCode: (email: string) => Promise<EmailVerificationResponse>;
   verifyEmail: (email: string, otp: string) => Promise<EmailVerificationResponse>;
   logout: () => Promise<void>;
@@ -247,9 +244,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         loginWithGoogle,
-        loginWithFacebook,
-        loginWithPhone,
-        verifyPhone,
         sendEmailVerificationCode,
         verifyEmail,
         logout,
