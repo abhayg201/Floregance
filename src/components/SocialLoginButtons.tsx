@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { LoaderCircle } from 'lucide-react';
 
 const SocialLoginButtons = () => {
-  const { loginWithGoogle, loginWithFacebook, isSocialLoginLoading, setIsSocialLoginLoading  } = useAuth();
+  const { loginWithGoogle, isSocialLoginLoading, setIsSocialLoginLoading  } = useAuth();
 
   const handleGoogleLogin = async () => {
     try {
@@ -24,21 +24,6 @@ const SocialLoginButtons = () => {
     setIsSocialLoginLoading(false);
   };
 
-  const handleFacebookLogin = async () => {
-    try {
-      console.log('Initiating Facebook login');
-      const response = await loginWithFacebook();
-      if (response.url) {
-        // The loading state will persist as we redirect
-        window.location.href = response.url;
-      } else {
-        toast.error('Failed to initiate Facebook login');
-      }
-    } catch (error: any) {
-      console.error('Facebook login error:', error);
-      toast.error(error.message || 'Failed to login with Facebook');
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -53,7 +38,7 @@ const SocialLoginButtons = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1">
         <Button 
           variant="outline" 
           type="button" 
@@ -72,18 +57,6 @@ const SocialLoginButtons = () => {
             </svg>
           )}
           {isSocialLoginLoading ? 'Signing in...' : 'Google'}
-        </Button>
-        <Button 
-          variant="outline" 
-          type="button" 
-          onClick={handleFacebookLogin}
-          className="flex items-center justify-center"
-          disabled={isSocialLoginLoading}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="#1877F2">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-          </svg>
-          Facebook
         </Button>
       </div>
     </div>
