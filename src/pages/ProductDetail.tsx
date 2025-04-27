@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { products } from '@/data/products';
@@ -9,23 +9,57 @@ import Newsletter from '@/components/Newsletter';
 import SEO from '@/components/SEO';
 import ProductImages from '@/components/ProductImages';
 import ProductInfo from '@/components/ProductInfo';
-import ArtisanStorySection from '@/components/ArtisanStorySection';
 import RelatedProducts from '@/components/RelatedProducts';
+import { Product } from '@/types/product';
+import { getProductById } from '@/services/productService';
+import ArtisanStorySection from '@/components/ArtisanStorySection';
+import NotFound from './NotFound';
+import LoadingPage from '@/components/LoadingPage';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const navigate = useNavigate();  
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // const product = products.find(p => p.id === id);
   
-  const product = products.find(p => p.id === id);
-  
+  // useEffect(() => {
+  //   if (!product) {
+  //     navigate('/products');
+  //   }
+  // }, [product, navigate]);
+
   useEffect(() => {
-    if (!product) {
-      navigate('/products');
+    const fetchProduct = async () => {
+      try {
+        // Replace with your actual API call
+        // const response = await fetch(`/api/products/${id}`);
+        const data = await getProductById(id);
+        console.log(data);
+        setProduct(data);
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch product');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProduct();
     }
-  }, [product, navigate]);
-  
-  if (!product) {
-    return null;
+  }, [id]);
+
+  if (loading) {
+    return <LoadingPage />;
+  }
+
+  if (error || !product) {
+    return (
+      <NotFound />
+    );
   }
 
   // Product schema for SEO
@@ -88,11 +122,9 @@ const ProductDetail = () => {
             </div>
             
             <ArtisanStorySection
-              artisanStory={product.artisanStory}
-              artisan={product.artisan}
-              origin={product.origin}
-              category={product.category}
-            />
+              origin={''}
+              category={product.category} 
+              artisanStory={''} artisan={''} />
             
             <RelatedProducts products={relatedProducts} category={product.category} />
           </div>

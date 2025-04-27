@@ -4,11 +4,9 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  originalPrice?: number;
+  original_price?: number;
   images: string[];
   category: string;
-  artisan: string;
-  artisanStory?: string;
   origin: string;
   materials: string[];
   dimensions?: string;

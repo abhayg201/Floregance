@@ -92,14 +92,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <Link to={`/products/${product.id}`}>
           <div className="mt-4 space-y-1">
             <h3 className="font-medium text-foreground">{product.name}</h3>
-            <p className="text-sm text-foreground/70">{product.artisan}</p>
             <div className="flex items-baseline justify-between mt-1">
               <p className="font-medium">
                 ₹{product.price.toLocaleString()}
               </p>
-              {product.originalPrice && (
+              {product.original_price && (
                 <p className="text-sm text-foreground/60 line-through">
-                  ₹{product.originalPrice.toLocaleString()}
+                  ₹{product.original_price.toLocaleString()}
                 </p>
               )}
             </div>

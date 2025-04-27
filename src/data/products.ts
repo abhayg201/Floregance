@@ -12,7 +12,7 @@ export const products: Product[] = [
       "https://images.unsplash.com/photo-1588625500633-a0cd518f0f60?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1585412721318-c7b9854a3989?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80"
     ],
-    category: "Textiles",
+    category: "Tiara",
     artisan: "Amina Khalid",
     artisanStory: "Amina Khalid learned the art of rug weaving from her grandmother at the age of 8. She has dedicated over 30 years to perfecting this craft, incorporating traditional patterns with her own artistic innovations. Each of her rugs takes several months to complete as she meticulously hand-ties thousands of knots to create durable, beautiful pieces that honor her heritage.",
     origin: "Morocco",
