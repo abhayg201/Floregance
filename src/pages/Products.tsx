@@ -4,20 +4,61 @@ import { cn } from "@/lib/utils";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import { products } from '@/data/products';
+// import { products } from '@/data/products';
 import { X, Filter, Check } from 'lucide-react';
+import { Category, getCategories } from '@/services/categories.service';
+import { toast } from 'sonner';
+import { Product } from '@/types/product';
+import { getAllProducts, getProductsByCategory } from '@/services/productService';
+import LoadingPage from '@/components/LoadingPage';
 
 const Products = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [sortOption, setSortOption] = useState("featured");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 30000 });
   const [searchQuery, setSearchQuery] = useState<string | null>(null);
   
-  const categories = Array.from(new Set(products.map(product => product.category)));
-  
+  // const categories = Array.from(new Set(products.map(product => product.category)));
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('Failed to load categories');
+      }
+    };
+
+    fetchCategories();
+  }, []);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const data = selectedCategory 
+          ? await getProductsByCategory(selectedCategory)
+          : await getAllProducts();
+
+
+        setProducts(data);
+        setFilteredProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        toast.error('Failed to load products');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [selectedCategory]);
   useEffect(() => {
     const categoryParam = searchParams.get('category');
     const searchParam = searchParams.get('search');
@@ -37,8 +78,7 @@ const Products = () => {
       filtered = filtered.filter(product => 
         product.name.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query) ||
-        product.artisan.toLowerCase().includes(query)
+        product.description.toLowerCase().includes(query) 
       );
     }
     
@@ -97,7 +137,9 @@ const Products = () => {
     searchParams.delete('search');
     setSearchParams(searchParams);
   };
-  
+  if (isLoading) {
+    return <LoadingPage />;
+  }
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -171,15 +213,15 @@ const Products = () => {
                     
                     {categories.map(category => (
                       <button
-                        key={category}
-                        onClick={() => handleCategoryChange(category)}
+                        key={category.id}
+                        onClick={() => handleCategoryChange(category.name)}
                         className={cn(
                           "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                          selectedCategory === category ? "bg-primary text-white" : "hover:bg-craft-100"
+                          selectedCategory === category.name ? "bg-primary text-white" : "hover:bg-craft-100"
                         )}
                       >
-                        <span>{category}</span>
-                        {selectedCategory === category && <Check size={16} />}
+                        <span>{category.name}</span>
+                        {selectedCategory === category.name && <Check size={16} />}
                       </button>
                     ))}
                   </div>
@@ -240,18 +282,18 @@ const Products = () => {
                       
                       {categories.map(category => (
                         <button
-                          key={category}
+                          key={category.id}
                           onClick={() => {
-                            handleCategoryChange(category);
+                            handleCategoryChange(category.name);
                             setShowFilter(false);
                           }}
                           className={cn(
                             "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                            selectedCategory === category ? "bg-primary text-white" : "hover:bg-craft-100"
+                            selectedCategory === category.name ? "bg-primary text-white" : "hover:bg-craft-100"
                           )}
                         >
-                          <span>{category}</span>
-                          {selectedCategory === category && <Check size={16} />}
+                          <span>{category.name}</span>
+                          {selectedCategory === category.name && <Check size={16} />}
                         </button>
                       ))}
                     </div>

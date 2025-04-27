@@ -38,15 +38,15 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
   return (
     <div className="flex flex-col">
       <h1 className="font-serif text-3xl md:text-4xl font-medium mb-2">{product.name}</h1>
-      <p className="text-foreground/70 mb-3">By {product.artisan} from {product.origin}</p>
+      {/* <p className="text-foreground/70 mb-3">By {product.artisan} from {product.origin}</p> */}
       
       <div className="flex items-baseline mb-6">
         <span className="text-2xl font-medium">
           ₹{product.price.toLocaleString()}
         </span>
-        {product.originalPrice && (
+        {product.original_price && (
           <span className="ml-3 text-foreground/60 line-through">
-            ₹{product.originalPrice.toLocaleString()}
+            ₹{product.original_price.toLocaleString()}
           </span>
         )}
       </div>

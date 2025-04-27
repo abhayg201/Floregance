@@ -39,7 +39,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ products, category })
               </div>
               <div className="mt-3">
                 <h3 className="font-medium">{product.name}</h3>
-                <p className="text-foreground/70 text-sm">{product.artisan}</p>
+                {/* <p className="text-foreground/70 text-sm">{product.artisan}</p> */}
                 <p className="mt-1 font-medium">₹{product.price.toLocaleString()}</p>
               </div>
             </Link>
