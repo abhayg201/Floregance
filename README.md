@@ -1,4 +1,4 @@
-# Ecoomerce Website (Floregance)
+# Ecommerce Website (Floregance)
 
 A modern web application built with Vite, TypeScript, React, Tailwind CSS, and ShadCN UI.
 
