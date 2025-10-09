@@ -3,12 +3,30 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import CryptoJS from 'https://esm.sh/crypto-js@4.1.1';
 
-// Get environment variables
-const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID') || '';
-const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET') || '';
-const razorpayWebhookSecret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET') || '';
+// Get environment variables (compatible with Deno Deploy and local Deno)
+function getEnv(name: string, defaultValue = ''): string {
+  // Deno.env.get is not available on Deno Deploy, use Deno.env.toObject() if available
+  try {
+    // @ts-ignore: Deno.env may not exist
+    if (typeof Deno !== 'undefined' && Deno.env && typeof Deno.env.get === 'function') {
+      // @ts-ignore
+      return Deno.env.get(name) || defaultValue;
+    }
+  } catch (_) {}
+  // Fallback to globalThis for Deno Deploy
+  // @ts-ignore
+  if (typeof globalThis !== 'undefined' && globalThis[name]) {
+    // @ts-ignore
+    return globalThis[name];
+  }
+  return defaultValue;
+}
+
+const supabaseUrl = getEnv('SUPABASE_URL');
+const supabaseServiceKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
+const razorpayKeyId = getEnv('RAZORPAY_KEY_ID');
+const razorpayKeySecret = getEnv('RAZORPAY_KEY_SECRET');
+const razorpayWebhookSecret = getEnv('RAZORPAY_WEBHOOK_SECRET');
 
 // Create a Supabase client with the service role key
 const supabase = createClient(supabaseUrl, supabaseServiceKey);

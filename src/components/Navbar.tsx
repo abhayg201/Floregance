@@ -106,12 +106,35 @@ const Navbar = () => {
         </div>
       </div>
       
+      {/* Backdrop for mobile menu */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      
       <div 
         className={cn(
-          "fixed inset-0 bg-white z-40 transition-transform transform duration-300 ease-out-sine pt-20",
+          "fixed inset-0 bg-white z-40 transition-transform transform duration-300 ease-out-sine pt-20 md:hidden",
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
+        {/* Mobile menu header with close button */}
+        <div className="container mx-auto px-6 py-4 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Menu</h2>
+            <button 
+              className="text-foreground/70 hover:text-foreground transition-colors p-2 -m-2"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+        
         <nav className="container mx-auto px-6 py-8 flex flex-col space-y-6">
           {navLinks.map((link) => (
             <Link

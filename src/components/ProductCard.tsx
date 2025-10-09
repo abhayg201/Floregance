@@ -37,7 +37,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     >
       <div className="block h-full">
         <Link to={`/products/${product.id}`} className="block">
-          <div className="relative overflow-hidden rounded-md bg-craft-50">
+          <div className="relative h-64 overflow-hidden rounded-md bg-craft-50">
             {!imageLoaded && (
               <div className="absolute inset-0 bg-craft-100 animate-pulse" />
             )}
@@ -45,7 +45,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               src={product.images[0]}
               alt={product.name}
               className={cn(
-                "product-image transition-all duration-500",
+                "w-full h-full object-cover transition-all duration-500",
                 isHovered ? "scale-105" : "scale-100",
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}

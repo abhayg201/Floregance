@@ -98,19 +98,21 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
       </div>
       
       <div className="border-t border-border pt-8 space-y-4">
-        <div>
-          <h3 className="font-medium mb-2">Materials</h3>
-          <div className="flex flex-wrap gap-2">
-            {product.materials.map((material, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-craft-100 rounded-full text-sm"
-              >
-                {material}
-              </span>
-            ))}
+        {product.materials && product.materials.length > 0 && (
+          <div>
+            <h3 className="font-medium mb-2">Materials</h3>
+            <div className="flex flex-wrap gap-2">
+              {product.materials.map((material, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-craft-100 rounded-full text-sm"
+                >
+                  {material}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         
         {product.dimensions && (
           <div>

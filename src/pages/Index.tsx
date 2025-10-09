@@ -30,9 +30,9 @@ const Index = () => {
       <Navbar />
       
       <main className="flex-grow">
-        <Hero />
+        {/* <Hero /> */}
         
-        <section className="bg-craft-50 pt-16 pb-20">
+        {/* <section className="bg-craft-50 pt-16 pb-20">
           <div className="container mx-auto">
             <h2 className="sr-only">Our Values</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -52,7 +52,7 @@ const Index = () => {
               </article>
             </div>
           </div>
-        </section>
+        </section> */}
         
         <FeaturedProducts />
         

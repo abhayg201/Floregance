@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import type { Order } from './orderService';
 
 export interface RazorpayPayment {
   id: string;
@@ -127,7 +126,7 @@ export const initializeRazorpayPayment = async (
     key: orderData.key,
     amount: orderData.amount,
     currency: orderData.currency,
-    name: "Craft Bazaar",
+    name: "Floregance",
     description: "Order Payment",
     order_id: orderData.id,
     handler: onSuccess,
